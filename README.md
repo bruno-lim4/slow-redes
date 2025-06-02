@@ -48,7 +48,7 @@ Deve definir, instanciar e fornecer os pacotes do protocolo SLOW.
 
 Integrar, configura e controlar o fluxo da comunicação e os segentos mandados.
 
-protocolHandler só altera os dados do pacote. Cabeçalho ficará a cargo do connection
+ProtocolHander fica a cargo do pacote, tirando campos como seqnum e acknum, e flags que dependem do estado da comunicação no momento, ficando esses a cargo de Connection
 
 #### Atributos:
 
