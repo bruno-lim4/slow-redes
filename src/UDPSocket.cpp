@@ -1,5 +1,5 @@
 #include "UDPSocket.h"
-
+ 
 #include <sys/socket.h>  
 #include <arpa/inet.h>    
 #include <netinet/in.h>   
@@ -7,6 +7,9 @@
 #include <cstring>        
 #include <cerrno>         
 
+#define TAM_BUF 1472 
+
+//construtor
 UDPSocket::UDPSocket():   
 {
     sockfd_ = -1;  
@@ -14,6 +17,7 @@ UDPSocket::UDPSocket():
     lastErrno_ = 0;
 }
 
+//destrutor 
 UDPSocket::~UDPSocket() {
     if (sockfd_ >= 0) {
         ::close(sockfd_);
@@ -80,4 +84,61 @@ ssize_t send(const vector<char> segment){
     }
 
     return sent ; 
+}
+
+optional<vector<char>> UDPSocket::receive(uint32_t timeout){
+
+    if(sockfd_ < 0){ //socket não foi bem estabelecido
+        lastErrno_ = EBADF ; 
+        return nullopt ; 
+    }
+
+    //descritores para leitura
+    fd_set readfd;
+    FD_ZERO(&readfd);
+    FD_SET(sockfd_, &readfd);
+
+    struct timeval tv ; 
+    tv.tv_sec = timeout/1000 ; //quantos segundos inteiros 
+    tv.tv_usec = timeout ; 
+
+    //bloquear até ter dados para leitura ou estourar o tv (time limit)
+    int sel = select(sockfd_ + 1, &readfds, nullptr, nullptr, &tv);
+
+    if(sel < 0){
+        lastErrno_ = errno ; 
+        return nullopt ; 
+    }
+
+    //não recebeu nada (estourou tempo limite)
+    if(sel == 0) return nullopt ; 
+
+    //sel > 0 -> sockfd_ está pronto pra leitura 
+    char buffer[TAM_BUF];
+
+    //ler o que foi enviado e salvar no buffer 
+    ssize_t recvd = ::recvfrom(
+        sockfd_,
+        buffer,
+        sizeof(buffer),
+        0,
+        nullptr,
+        nullptr
+    );
+
+    //deu erro de leitura
+    if(recv < 0){
+        lastErrno_ = errno ; 
+        return nullopt ; 
+    }
+
+    vector<char> result(static_cast<size_t>(recvd));
+    memcpy(result.data(), buffer, static_cast<size_t>(recvd));
+    
+    return result;
+
+}
+
+int getLastError() const{
+    return lastErrno_ ; 
 }
