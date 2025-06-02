@@ -48,13 +48,48 @@ vector<char> Package::serialize() const {
     return buffer;
 }
 
+// Não sei se isso vai funcionar :(
 template<typename T>
 T deserializeField(const vector<char> &buffer, size_t &offset) {
+    T value = 0;
+    for(size_t i = 0; i < sizeof(T); i++) {
+        value |= (static_cast<uint8_t>(buffer[offset + i] << (i * 8)));
+    }
+    offset += sizeof(T);
 
+    return value;
 }
 
 Package Package::deserialize(const vector<char>& buffer) {
+    Package pack;
+    size_t offset = 0; // Offset para controlar o indice do próximo campo no pacote
 
+    /*
+    para o sid
+    for (int i = 0; i < 16; ++i) {
+        seg.sid[i] = static_cast<uint8_t>(buffer[offset++]);
+    }
+    */
+
+    // Deserializando sttl e flags
+    uint32_t combinedField = deserializeField<uint32_t>(buffer, offset);
+    pack.sttl = combinedField & 0x07FFFFFF;
+    pack.flagC = combinedField & (1 << 27);
+    pack.flagR = combinedField & (1 << 28);
+    pack.flagACK = combinedField & (1 << 29);
+    pack.flagAR = combinedField & (1 << 30);
+    pack.flagMB = combinedField & (1 << 31);
+
+    // Deserializando o restante dos campos
+    pack.seqnum = deserializeField<uint32_t>(buffer, offset);
+    pack.acknum = deserializeField<uint32_t>(buffer, offset);
+    pack.window = deserializeField<uint16_t>(buffer, offset);
+    pack.fid = deserializeField<uint8_t>(buffer, offset);
+    pack.fo = deserializeField<uint8_t>(buffer, offset);
+
+    // Deserializando o payload de dados
+    pack.data.assign(buffer.begin() + offset, buffer.end());
+    return pack;
 }
 
 
