@@ -1,0 +1,40 @@
+all: peripheral
+
+peripheral: main.o UDPSocket.o protocolHandler.o
+	g++ -std=c++17 -Wall -g main.o UDPSocket.o protocolHandler.o -o peripheral
+
+main.o: main.cpp
+	g++ -std=c++17 -Wall -g -c main.cpp
+
+UDPSocket.o: UDPSocket.cpp UDPSocket.h
+	g++ -std=c++17 -Wall -g -c UDPSocket.cpp
+
+protocolHandler.o: protocolHandler.cpp protocolHandler.hpp connection.hpp segment.hpp UDPSocket.h
+	g++ -std=c++17 -Wall -g -c protocolHandler.cpp
+
+clean:
+	rm -f *.o peripheral
+
+run: peripheral
+	./peripheral
+
+###
+##all: peripheral
+
+#peripheral: main.o UDPSocket.o protocolHandler.o
+ #   g++ -std=c++17 -Wall -g main.o UDPSocket.o protocolHandler.o -o peripheral
+
+#main.o: main.cpp
+ #   g++ -std=c++17 -Wall -g -c main.cpp
+
+#UDPSocket.o: UDPSocket.cpp UDPSocket.h
+ #   g++ -std=c++17 -Wall -g -c UDPSocket.cpp
+#
+#protocolHandler.o: protocolHandler.cpp protocolHandler.hpp connection.hpp segment.hpp UDPSocket.h
+ #   g++ -std=c++17 -Wall -g -c protocolHandler.cpp
+#
+#clean:
+ #   rm -f *.o peripheral
+
+#run: peripheral
+#	./peripheral*/

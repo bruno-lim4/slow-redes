@@ -1,24 +1,14 @@
 #include "UDPSocket.h"
- 
-#include <sys/socket.h>  
-#include <arpa/inet.h>    
-#include <netinet/in.h>   
-#include <unistd.h>       
-#include <cstring>        
-#include <cerrno>         
-
-#define TAM_BUF 1472 
 
 //construtor
-UDPSocket::UDPSocket():   
-{
+UDPSocket::UDPSocket(){
     sockfd_ = -1;  
-    isConnected_= false
+    isConnected_= false ;
     lastErrno_ = 0;
 }
 
 //destrutor 
-UDPSocket::~UDPSocket() {
+UDPSocket::~UDPSocket(){
     if (sockfd_ >= 0) {
         ::close(sockfd_);
         sockfd_ = -1;
@@ -60,7 +50,7 @@ bool UDPSocket::connectTo(const string& ip, uint16_t port) {
 
 }
 
-ssize_t send(const vector<char> segment){
+ssize_t UDPSocket::send(const vector<char> &segment){
 
     //verifica se connectTo foi chamado com sucesso 
     if(!isConnected_){
@@ -69,9 +59,9 @@ ssize_t send(const vector<char> segment){
     }
 
     //mandar os bytes via UDP para o endereço IP e porta armazenados em peerAddr_
-    ssize_t :: sent = sendto(
+    ssize_t sent = sendto(
         sockfd_, 
-        segment, 
+        segment.data(), 
         segment.size(), 
         0, 
         reinterpret_cast<const struct sockaddr*>(&peerAddr_), 
@@ -103,7 +93,7 @@ optional<vector<char>> UDPSocket::receive(uint32_t timeout){
     tv.tv_usec = timeout ; 
 
     //bloquear até ter dados para leitura ou estourar o tv (time limit)
-    int sel = select(sockfd_ + 1, &readfds, nullptr, nullptr, &tv);
+    int sel = select(sockfd_ + 1, &readfd, nullptr, nullptr, &tv);
 
     if(sel < 0){
         lastErrno_ = errno ; 
@@ -127,7 +117,7 @@ optional<vector<char>> UDPSocket::receive(uint32_t timeout){
     );
 
     //deu erro de leitura
-    if(recv < 0){
+    if(recvd < 0){
         lastErrno_ = errno ; 
         return nullopt ; 
     }
@@ -139,6 +129,6 @@ optional<vector<char>> UDPSocket::receive(uint32_t timeout){
 
 }
 
-int getLastError() const{
+int UDPSocket::getLastError() const{
     return lastErrno_ ; 
 }
