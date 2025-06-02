@@ -1,5 +1,8 @@
 #include "package.hpp"
 
+// Internal constants for package's size control
+#define MAX_PACK_DATA 1440
+
 // Construtor da classe
 Package::Package(
         uint32_t sttl,
@@ -32,7 +35,19 @@ Package::Package(
 //================================
 // MÉTODOS PRINCIPAIS
 //================================
-vector<char> Package::serialize() const;
+
+// Transforma os dados do objeto na sequnecia de bits a ser trans
+// mitida os enviando em um vector de chars;
+vector<char> Package::serialize() const {
+    vector<char> serializedBuffer;
+
+    // Verificando se a quantidade de dados não ultrapassa o esperado
+    if(this->data.size() > MAX_PACK_DATA)
+        return {};
+
+    // 
+
+}
 static Package Package::deserialize(const vector<char>& buffer);
 
 
@@ -43,7 +58,7 @@ static Package Package::deserialize(const vector<char>& buffer);
 // Pacotes ack devem ter números de ack iguais aos de seq, e não trasnportarem dados
 // Além da flag ativa
 bool Package::isAckOnly() const {
-    return this->flagACK && (this->acknum == this->seqnum) && data.empty();
+    return this->flagACK && (this->acknum == this->seqnum) && this->data.empty();
 }
 
 bool Package::isConnect() const {
@@ -66,6 +81,10 @@ bool Package::isMoreBits() const {
 //================================
 // GETTERS
 //================================
+uint32_t Package::getSttl() const {
+    return this->sttl;
+}
+
 vector<char> Package::getData() const {
     return this->data;
 }
@@ -140,8 +159,36 @@ void Package::setData(vector<char> data) {
 //================================
 string Package::toString() const {
     stringstream ss;
+    
+    // Informações do cabeçalho
+    // ss << "sid = " << this->sid << endl;
+    ss << "seq = " << this->seqnum << endl;
+    ss << "ack = " << this->acknum << endl;
+    ss << "Window" << this->window << endl;
 
-    ss << "seq = " << seqnum << endl;
-    ss << "ack = " << acknum << endl;
-    if (isAckOnly())
+    // Caso o pacote seja de um segmento fragmentado
+    if(this->flagMB) {
+        ss << "fid = " << this->fid << endl;
+        ss << "fo = " << this->fo << endl;
+    }
+
+    // Indentificando o tipo do pacote
+    if(this->isAckOnly())
+        ss << "[ACK PACKAGE]" << endl;
+    if(this->flagC)
+        ss << "[CONNECT PACKAGE]" << endl;
+    if(this->flagR)
+        ss << "[REVIVE PACKAGE]" << endl;
+    if(this->flagAR)
+        ss << "[ACCEPTED]" << endl;
+    
+    // Imprimindo os dados se houver
+    if(!this->data.empty()) {
+        ss << "DATA: ";
+        for(char c : this->data) {
+            ss << c;
+        }
+    }
+
+    return ss.str();
 }

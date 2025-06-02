@@ -3,13 +3,14 @@
     #include <iostream>
     #include <vector>
     #include <sstream>
+    #include <cstdint>
 
     using namespace std;
 
     class Package {
     private:
         // campos
-        // sid --> ainda a definir
+        //UUID sid;
         uint32_t sttl = 0;    // Time to live (convertido para 27 bits no pacote final)
         uint32_t seqnum = 0;  // Número de sequência
         uint32_t acknum = 0;  // Número de acknowledgement
@@ -22,13 +23,14 @@
         bool flagR = false;    // indica um pacote Revive
         bool flagACK = false;  // indica um pacote ack
         bool flagAR = false;   // indica aceitação/rejeição da conexão
-        bool flagMB = false;  // indica um pacote fragmentado
+        bool flagMB = false;   // indica um pacote fragmentado
 
         // Dado
         vector<char> data;
 
     public:
-        Package( uint32_t sttl,
+        Package( //UUID sid
+            uint32_t sttl,
             bool connect,
             bool revive,
             bool ack,
@@ -53,6 +55,7 @@
         bool isMoreBits() const;
 
         // Getters
+        uint32_t getSttl() const;
         vector<char> getData() const;
         uint32_t getAcknum() const;
         uint32_t getSeqnum() const;
@@ -81,6 +84,6 @@
 
 /*
 ANOTAÇÕES DO GABIRUUU PARA UM FUTURO PRÓXIMO
-metodos static não estão atrelados ao objeto em sim=, mas sim a classe... Usar com
+metodos static não estão atrelados ao objeto em si, mas sim a classe... Usar com
 nome_da_clae::metodo  (só achei legal usar isso aqui :) )
 */
