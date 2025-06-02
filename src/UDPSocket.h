@@ -1,6 +1,6 @@
 #ifndef UDP_SOCKET_H
 #define UDP_SOCKET_H
-
+ 
 #include <string>
 #include <optional>
 
@@ -23,7 +23,7 @@ public:
 
     //Tenta receber um Segmento
     //Se não chegar nada em 100 ms ou ocorrer erro, retorna null.
-    vector<char> receive();
+    optional<vector<char>> UDPSocket::receive(uint32_t timeout);
 
     //Se alguma chamada falhar, getLastError() devolve o errno da última operação.
     int getLastError() const;

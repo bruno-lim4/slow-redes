@@ -1,5 +1,5 @@
 #include "UDPSocket.h"
-
+ 
 #include <sys/socket.h>  
 #include <arpa/inet.h>    
 #include <netinet/in.h>   
@@ -7,6 +7,9 @@
 #include <cstring>        
 #include <cerrno>         
 
+#define TAM_BUF 1472 
+
+//construtor
 UDPSocket::UDPSocket():   
 {
     sockfd_ = -1;  
@@ -14,6 +17,7 @@ UDPSocket::UDPSocket():
     lastErrno_ = 0;
 }
 
+//destrutor 
 UDPSocket::~UDPSocket() {
     if (sockfd_ >= 0) {
         ::close(sockfd_);
@@ -34,6 +38,107 @@ bool UDPSocket::connectTo(const string& ip, uint16_t port) {
         return false ; 
     }
 
-    
+    memset(&peerAddr_, 0, sizeof(peerAddr_));
+    peerAddr_.sin_family = AF_INET ; // marcar que estamos usando IPv4 
+    peerAddr_.sin_port = htons(port);
 
+    //estabelecendo (IP, porta) -> o IP ficará armazenado em .sin_addr
+    int rc = inet_pton(AF_INET, ip.c_str(), &peerAddr_.sin_addr);
+
+    //É um IPv4 válido? 
+    if (rc <= 0) {
+        // rc == 0 -> ip string inválida; rc < 0 -> erro 
+        lastErrno_ = (rc == 0 ? EINVAL : errno);
+        ::close(sockfd_);
+        sockfd_ = -1;
+        return false;
+    }
+
+    //socket criado corretamente 
+    isConnected_ = 1 ; 
+    return true ;
+
+}
+
+ssize_t send(const vector<char> segment){
+
+    //verifica se connectTo foi chamado com sucesso 
+    if(!isConnected_){
+        lastErrno_ = ENOTCONN ; 
+        return -1 ; 
+    }
+
+    //mandar os bytes via UDP para o endereço IP e porta armazenados em peerAddr_
+    ssize_t :: sent = sendto(
+        sockfd_, 
+        segment, 
+        segment.size(), 
+        0, 
+        reinterpret_cast<const struct sockaddr*>(&peerAddr_), 
+        sizeof(peerAddr_)) ;
+
+    //checando se houve erro no envio
+    if(sent < 0){
+        lastErrno_  = errno ; 
+        return -1 ; 
+    }
+
+    return sent ; 
+}
+
+optional<vector<char>> UDPSocket::receive(uint32_t timeout){
+
+    if(sockfd_ < 0){ //socket não foi bem estabelecido
+        lastErrno_ = EBADF ; 
+        return nullopt ; 
+    }
+
+    //descritores para leitura
+    fd_set readfd;
+    FD_ZERO(&readfd);
+    FD_SET(sockfd_, &readfd);
+
+    struct timeval tv ; 
+    tv.tv_sec = timeout/1000 ; //quantos segundos inteiros 
+    tv.tv_usec = timeout ; 
+
+    //bloquear até ter dados para leitura ou estourar o tv (time limit)
+    int sel = select(sockfd_ + 1, &readfds, nullptr, nullptr, &tv);
+
+    if(sel < 0){
+        lastErrno_ = errno ; 
+        return nullopt ; 
+    }
+
+    //não recebeu nada (estourou tempo limite)
+    if(sel == 0) return nullopt ; 
+
+    //sel > 0 -> sockfd_ está pronto pra leitura 
+    char buffer[TAM_BUF];
+
+    //ler o que foi enviado e salvar no buffer 
+    ssize_t recvd = ::recvfrom(
+        sockfd_,
+        buffer,
+        sizeof(buffer),
+        0,
+        nullptr,
+        nullptr
+    );
+
+    //deu erro de leitura
+    if(recv < 0){
+        lastErrno_ = errno ; 
+        return nullopt ; 
+    }
+
+    vector<char> result(static_cast<size_t>(recvd));
+    memcpy(result.data(), buffer, static_cast<size_t>(recvd));
+    
+    return result;
+
+}
+
+int getLastError() const{
+    return lastErrno_ ; 
 }
