@@ -34,6 +34,24 @@ bool UDPSocket::connectTo(const string& ip, uint16_t port) {
         return false ; 
     }
 
-    
+    memset(&peerAddr_, 0, sizeof(peerAddr_));
+    peerAddr_.sin_family = AF_INET ; // marcar que estamos usando IPv4 
+    peerAddr_.sin_port = htons(port);
+
+    //estabelecendo (IP, porta) -> o IP ficará armazenado em .sin_addr
+    int rc = inet_pton(AF_INET, ip.c_str(), &peerAddr_.sin_addr);
+
+    //É um IPv4 válido? 
+    if (rc <= 0) {
+        // rc == 0 -> ip string inválida; rc < 0 -> erro 
+        lastErrno_ = (rc == 0 ? EINVAL : errno);
+        ::close(sockfd_);
+        sockfd_ = -1;
+        return false;
+    }
+
+    //socket criado corretamente 
+    isConnected_ = 1 ; 
+    return true ;
 
 }
