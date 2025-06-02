@@ -29,19 +29,6 @@
         vector<char> data;
 
     public:
-        Package( //UUID sid
-            uint32_t sttl,
-            bool connect,
-            bool revive,
-            bool ack,
-            bool accept,
-            bool more_bits,
-            uint32_t seq,
-            uint32_t ackn,
-            uint16_t win,
-            uint8_t frag_id,
-            uint8_t frag_off,
-            const std::vector<char>& payload);
 
         // Métodos principais
         vector<char> serialize() const;
@@ -63,6 +50,8 @@
         uint8_t getFo() const;
 
         // Setters
+        // void setSid(UUID newSid);
+        void setSttl(uint32_t newSttl);
         void setSeqnum(uint32_t newSeqNum);
         void setAcknum(uint32_t newAckNum);
         void setWindow(uint16_t newWindow);

@@ -3,52 +3,59 @@
 // Internal constants for package's size control
 #define MAX_PACK_DATA 1440
 
-// Construtor da classe
-Package::Package(
-        uint32_t sttl,
-        bool connect,
-        bool revive,
-        bool ack,
-        bool accept,
-        bool more_bits,
-        uint32_t seq,
-        uint32_t ackn,
-        uint16_t win,
-        uint8_t frag_id,
-        uint8_t frag_off,
-        const std::vector<char>& payload)
-    : sttl(sttl),
-      flagC(connect),
-      flagR(revive),
-      flagACK(ack),
-      flagAR(accept),
-      flagMB(more_bits),
-      seqnum(seq),
-      acknum(ackn),
-      window(win),
-      fid(frag_id),
-      fo(frag_off),
-      data(payload)
-{}
-
-
 //================================
 // MÉTODOS PRINCIPAIS
 //================================
 
+// Função auxiliar que serializa campos genéricos em um buffer
+template<typename T>
+void serializeField(vector<char> &buffer, T value) {
+    for(size_t i = 0; i < sizeof(T); i += 8) {
+        buffer.push_back((value >> i) & 0xFF);
+    }
+}
+
 // Transforma os dados do objeto na sequnecia de bits a ser trans
 // mitida os enviando em um vector de chars;
 vector<char> Package::serialize() const {
-    vector<char> serializedBuffer;
+    vector<char> buffer;
 
     // Verificando se a quantidade de dados não ultrapassa o esperado
     if(this->data.size() > MAX_PACK_DATA)
         return {};
 
-    // 
+    // Convertendo os dados do cabeçalho para little endian
+    //serializeField(buffer, this->sid);
+
+    // Juntando sstl com as flags do pacote na serialização
+    uint32_t combinedField = (this->sttl & 0x07FFFFFF)
+        | ((this->flagC ? 1 : 0) << 27)
+        | ((this->flagR ? 1 : 0) << 28)
+        | ((this->flagACK ? 1 : 0) << 29)
+        | ((this->flagAR ? 1 : 0) << 30)
+        | ((this->flagMB ? 1 : 0) << 31);
+    serializeField(buffer, combinedField);
+
+    serializeField(buffer,  this->seqnum);
+    serializeField(buffer, this->acknum);
+    serializeField(buffer, this->window);
+    serializeField(buffer, this->fid);
+    serializeField(buffer, this->fo);
+
+    // Serializando os dados (basta copiar para o buffer)
+    buffer.insert(buffer.end(), this->data.begin(), this->data.end());
+
+    return buffer;
+}
+
+template<typename T>
+T deserializeField(const vector<char> &buffer, size_t &offset) {
 
 }
-static Package Package::deserialize(const vector<char>& buffer);
+
+Package Package::deserialize(const vector<char>& buffer) {
+
+}
 
 
 //================================
@@ -109,6 +116,10 @@ uint8_t Package::getFo() const {
 //================================
 // SETTERS
 //================================
+void Package::setSttl(uint32_t newSttl) {
+    this->sttl = newSttl;
+}
+
 void Package::setSeqnum(uint32_t newSeqNum) {
     this->seqnum = newSeqNum;
 }
