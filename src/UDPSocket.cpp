@@ -55,3 +55,29 @@ bool UDPSocket::connectTo(const string& ip, uint16_t port) {
     return true ;
 
 }
+
+ssize_t send(const vector<char> segment){
+
+    //verifica se connectTo foi chamado com sucesso 
+    if(!isConnected_){
+        lastErrno_ = ENOTCONN ; 
+        return -1 ; 
+    }
+
+    //mandar os bytes via UDP para o endereço IP e porta armazenados em peerAddr_
+    ssize_t :: sent = sendto(
+        sockfd_, 
+        segment, 
+        segment.size(), 
+        0, 
+        reinterpret_cast<const struct sockaddr*>(&peerAddr_), 
+        sizeof(peerAddr_)) ;
+
+    //checando se houve erro no envio
+    if(sent < 0){
+        lastErrno_  = errno ; 
+        return -1 ; 
+    }
+
+    return sent ; 
+}
