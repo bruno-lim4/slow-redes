@@ -3,6 +3,16 @@
  
 #include <string>
 #include <optional>
+#include <sys/socket.h>  
+#include <arpa/inet.h>    
+#include <netinet/in.h>   
+#include <unistd.h>       
+#include <cstring>        
+#include <cstdint> 
+#include <cerrno>         
+#include <vector> 
+
+#define TAM_BUF 1472 
 
 using namespace std ; 
 
@@ -19,11 +29,11 @@ public:
 
     //Envia um serializado via UDP (sendto)
     //Retorna número de bytes enviados, ou –1 em caso de erro
-    ssize_t send(const vector<char> segment);
-
+    ssize_t send(const vector<char>& segment);
+    
     //Tenta receber um Segmento
     //Se não chegar nada em 100 ms ou ocorrer erro, retorna null.
-    optional<vector<char>> UDPSocket::receive(uint32_t timeout);
+    optional<vector<char>> receive(uint32_t timeout);
 
     //Se alguma chamada falhar, getLastError() devolve o errno da última operação.
     int getLastError() const;
