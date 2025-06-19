@@ -1,6 +1,6 @@
 #include "protocolHandler.hpp"
 #include <iostream>
-#include <bits/stdc++.h>
+
 
 using namespace std; 
 
@@ -9,6 +9,7 @@ using namespace std;
 bool ProtocolHandler::handshake(UDPSocket &socket, const string &ip, uint16_t port){
     //estabelecendo a conexão 
     if(!socket.connectTo(ip, port)){
+        cout << ip << " " << port << endl;
         //não foi bem sucedida 
         cout << socket.getLastError() << "\n" ; 
         return 0 ; 
@@ -57,7 +58,6 @@ bool ProtocolHandler::sendData(UDPSocket &socket, const vector<char> &data){
         Package pack;
 
         vector<char> aux;
-        int qt;
 
         // se caber tudo
         if (MAX_PACK_DATA >= total_left) {
@@ -114,4 +114,6 @@ Package ProtocolHandler::receiveLoop(UDPSocket &socket, uint32_t Ackesperado){
             if(p.getAcknum() == Ackesperado) return p;
         } 
     }
+
+    return {};
 }

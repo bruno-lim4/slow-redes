@@ -57,6 +57,7 @@ bool UDPSocket::connectTo(const string& ip, uint16_t port) {
         lastErrno_ = (rc == 0 ? EINVAL : errno);
         ::close(sockfd_);
         sockfd_ = -1;
+        cout << "Erro\n";
         return false;
     }
 
@@ -159,5 +160,6 @@ optional<vector<char>> UDPSocket::receive(uint32_t timeout){
 
 // função apenas para retornar o último erro 
 int UDPSocket::getLastError() const{
+    cout << "sou o socket";
     return lastErrno_ ; 
 }
