@@ -10,7 +10,7 @@
     class Package {
     private:
         // campos
-        array<char, 128> sid = {}; // UUDIv8
+        array<char,16> sid = {}; // UUDIv8
         uint32_t sttl = 0;          // Time to live (convertido para 27 bits no pacote final)
         uint32_t seqnum = 0;        // Número de sequência
         uint32_t acknum = 0;        // Número de acknowledgement
@@ -43,6 +43,7 @@
         bool isMoreBits() const;
 
         // Getters
+        array<char,16> getSid() const;
         uint32_t getSttl() const;
         vector<char> getData() const;
         uint32_t getAcknum() const;
@@ -51,7 +52,7 @@
         uint8_t getFo() const;
 
         // Setters
-        // void setSid(UUID newSid);
+        void setSid(array<char, 16> sid);
         void setSttl(uint32_t newSttl);
         void setSeqnum(uint32_t newSeqNum);
         void setAcknum(uint32_t newAckNum);
@@ -62,7 +63,7 @@
         void setFlagR(bool newFlag);    
         void setFlagACK(bool newFUDPSocket &socket, const string &ip, uint16_t portlag);
         void setFlageMB(bool newFlag);
-        bool setData(vector<char> data);
+        void setData(vector<char> data);
         
 
         // Métodos para debug/log (opcional)
