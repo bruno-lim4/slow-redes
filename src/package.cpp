@@ -3,7 +3,6 @@
 // Internal constants for package's size control
 #define MAX_PACK_DATA 1440
 
-
 void printBits(char byte) {
     for (int i = 7; i >= 0; --i) {
         std::cout << ((byte >> i) & 1);
@@ -44,7 +43,7 @@ vector<char> Package::serialize() const {
         return {};
 
     // Convertendo os dados do cabeçalho para little endian
-    //serializeField(buffer, this->sid);
+    buffer.insert(buffer.begin(), this->sid.begin(), this->sid.end());
 
     // Juntando sstl com as flags do pacote na serialização
     uint32_t combinedField = (this->sttl & 0x07FFFFFF)
@@ -53,7 +52,7 @@ vector<char> Package::serialize() const {
         | ((this->flagACK ? 1 : 0) << 29)
         | ((this->flagAR ? 1 : 0) << 30)
         | ((this->flagMB ? 1 : 0) << 31);
-    cout << combinedField << endl;
+    //``cout << combinedField << endl;
     serializeField(buffer, combinedField);
 
     serializeField(buffer,  this->seqnum);
@@ -92,23 +91,24 @@ Package Package::deserialize(const vector<char>& buffer) {
     Package pack;
     size_t offset = 0; // Offset para controlar o indice do próximo campo no pacote
 
-    /*
-    para o sid
+    // Para o sid
     for (int i = 0; i < 16; ++i) {
-        seg.sid[i] = static_cast<uint8_t>(buffer[offset++]);
+        pack.sid[i] = static_cast<uint8_t>(buffer[offset]);
+        offset++;
     }
-    */
 
     // Deserializando sttl e flags
     uint32_t combinedField = deserializeField<uint32_t>(buffer, offset);
-    printf("CombinedField: %d\n", combinedField);
 
+    /*
+    printf("Combined field\n");
     for(int i = 0; i < 32; i++) {
         if((1 << (31 - i)) & combinedField)
             cout << 1;
         else
             cout << 0;
     }
+    */
 
     pack.sttl = combinedField & 0x07FFFFFF;
     pack.flagC = combinedField & (1 << 27);
@@ -169,6 +169,10 @@ bool Package::isMoreBits() const {
 //================================
 // GETTERS
 //================================
+array<char,16> Package::getSid() const {
+    return this->sid;
+}
+
 uint32_t Package::getSttl() const {
     return this->sttl;
 }
@@ -197,6 +201,10 @@ uint8_t Package::getFo() const {
 //================================
 // SETTERS
 //================================
+void Package::setSid(array<char, 16> sid) {
+    this->sid = sid;
+}
+
 void Package::setSttl(uint32_t newSttl) {
     this->sttl = newSttl;
 }
@@ -241,12 +249,8 @@ void Package::setFlageMB(bool newFlag) {
     this->flagMB = newFlag; 
 }
 
-bool Package::setData(vector<char> data) {
-    if(data.size() > MAX_PACK_DATA)
-        return false;
-    
+void Package::setData(vector<char> data) {
     this->data = data;
-    return true;
 }
 
 
@@ -259,7 +263,11 @@ string Package::toString() const {
     ss << "=== Pacote SLOW ===" << endl;
 
     // Informações do cabeçalho
-    // ss << "sid = " << this->sid << endl;
+    ss << "sid = ";
+    for(char c : this->sid) {
+        ss << c;
+    }
+    ss << endl;
     ss << "seq = " << this->seqnum << endl;
     ss << "ack = " << this->acknum << endl;
     ss << "Window = " << this->window << endl;
