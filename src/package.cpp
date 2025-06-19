@@ -142,9 +142,24 @@ bool Package::isAckOnly() const {
 
 // Pacotes connect devem ter seqnum, acknum e sttl zerados;
 bool Package::isConnect() const {
-    return (this->sttl == 0) && (this->flagC)
-    && (this->seqnum == 0) && (this->acknum == 0)
-    && (this->data.empty());
+    // Verificando sttl e flags
+    if(!(this->sttl == 0) || !(this->flagC))
+        return false;
+    
+    // Números de sequencia e ack devem ser 0
+    if((this->seqnum != 0) || (this->acknum) != 0)
+        return false;
+
+    // O pacote não pode ter dados
+    if(!this->data.empty())
+        return false;
+
+    // Verificando se todo o SID possui 0
+    for(char c : this->sid) {
+        if(c != 0) return false;
+    }
+
+    return true;
 }
 
 // Pacotes disconnect devem ter as flags ack, conect e revive ligadas, além de

@@ -10,7 +10,8 @@
     class Package {
     private:
         // campos
-        array<char,16> sid = {}; // UUDIv8
+        // UUDIv8
+        array<char,16> sid = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
         uint32_t sttl = 0;          // Time to live (convertido para 27 bits no pacote final)
         uint32_t seqnum = 0;        // Número de sequência
         uint32_t acknum = 0;        // Número de acknowledgement

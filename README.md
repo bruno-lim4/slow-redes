@@ -20,7 +20,7 @@ Deve definir, instanciar e fornecer os pacotes do protocolo SLOW.
 
 | Nome | Função | Quantidade de bits |
 |------|--------|--------------------|
-| sid | UUID definido em uma struct a parte |
+| sid | UUID definido como um array de chars | 128 bits |
 | sttl | Time to live | 27 bits |
 | c | Flag que indica o pacote Connect | 1 bit |
 | r | Flag que indica o pacote Revive | 1 bit |
