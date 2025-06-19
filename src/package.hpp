@@ -60,8 +60,7 @@
         void setFo(uint8_t newFo);
         void setFlagC(bool newFlag);
         void setFlagR(bool newFlag);    
-        void setFlagACK(bool newFlag);
-        void setFlagAR(bool newFlag);
+        void setFlagACK(bool newFUDPSocket &socket, const string &ip, uint16_t portlag);
         void setFlageMB(bool newFlag);
         void setData(vector<char> data);
         

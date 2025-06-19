@@ -84,7 +84,7 @@ void Connection::handleOutput(Package& package, int opt) {
         if (!(this->state == State::ESTABLISHED)) break;
         package.setFlagACK(true);
         package.setAcknum(this->seqnum);
-        this->seqnum++;
+        //this->seqnum++;
         package.setSeqnum(this->seqnum);
         this->acknum = this->seqnum;
 
@@ -108,7 +108,7 @@ void Connection::handleOutput(Package& package, int opt) {
         package.setFlagC(true);
         package.setFlagR(true);
         package.setAcknum(this->seqnum);
-        this->seqnum++;
+        //this->seqnum++;
         package.setSeqnum(this->seqnum);
         this->acknum = this->seqnum;
 
@@ -121,7 +121,7 @@ void Connection::handleOutput(Package& package, int opt) {
         package.setFlagACK(true);
         package.setFlagR(true);
         package.setAcknum(this->seqnum);
-        this->seqnum++;
+        //this->seqnum++;
         package.setSeqnum(this->seqnum);
         this->acknum = this->seqnum;
 
