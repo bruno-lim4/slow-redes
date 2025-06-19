@@ -10,20 +10,20 @@
     class Package {
     private:
         // campos
-        //UUID sid;
-        uint32_t sttl = 0;    // Time to live (convertido para 27 bits no pacote final)
-        uint32_t seqnum = 0;  // Número de sequência
-        uint32_t acknum = 0;  // Número de acknowledgement
+        array<char, 128> sid = {}; // UUDIv8
+        uint32_t sttl = 0;          // Time to live (convertido para 27 bits no pacote final)
+        uint32_t seqnum = 0;        // Número de sequência
+        uint32_t acknum = 0;        // Número de acknowledgement
         uint16_t window = 0;
-        uint8_t fid = 0;      // Id para pacotes de um segmento fragmentado
-        uint8_t fo = 0;       // Indica a ordem de pacotes fragmentados
+        uint8_t fid = 0;            // Id para pacotes de um segmento fragmentado
+        uint8_t fo = 0;             // Indica a ordem de pacotes fragmentados
 
         // Flags
-        bool flagC = false;    // indica um pacote Connect
-        bool flagR = false;    // indica um pacote Revive
-        bool flagACK = false;  // indica um pacote ack
-        bool flagAR = false;   // indica aceitação/rejeição da conexão
-        bool flagMB = false;   // indica um pacote fragmentado
+        bool flagC = false;         // indica um pacote Connect
+        bool flagR = false;         // indica um pacote Revive
+        bool flagACK = false;       // indica um pacote ack
+        bool flagAR = false;        // indica aceitação/rejeição da conexão
+        bool flagMB = false;        // indica um pacote fragmentado
 
         // Dado
         vector<char> data;
@@ -62,7 +62,7 @@
         void setFlagR(bool newFlag);    
         void setFlagACK(bool newFUDPSocket &socket, const string &ip, uint16_t portlag);
         void setFlageMB(bool newFlag);
-        void setData(vector<char> data);
+        bool setData(vector<char> data);
         
 
         // Métodos para debug/log (opcional)

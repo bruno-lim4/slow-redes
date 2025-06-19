@@ -3,6 +3,21 @@
 // Internal constants for package's size control
 #define MAX_PACK_DATA 1440
 
+
+void printBits(char byte) {
+    for (int i = 7; i >= 0; --i) {
+        std::cout << ((byte >> i) & 1);
+    }
+    std::cout << std::endl;
+}
+
+void printBufferBits(const std::vector<char>& buffer) {
+    for (unsigned char c : buffer) {
+        printBits(c);
+    }
+    printf("\n");
+}
+
 //================================
 // MÉTODOS PRINCIPAIS
 //================================
@@ -60,7 +75,7 @@ T deserializeField(const vector<char> &buffer, size_t &offset) {
     Unsigned value = 0;
 
     // Deserializando cada byte
-    for (std::size_t i = 0; i < offset; ++i) {
+    for (std::size_t i = 0; i < sizeof(T); ++i) {
         value |= static_cast<Unsigned>(
                      static_cast<unsigned char>(buffer[offset + i])
                  ) << (i * 8);
@@ -87,6 +102,13 @@ Package Package::deserialize(const vector<char>& buffer) {
     // Deserializando sttl e flags
     uint32_t combinedField = deserializeField<uint32_t>(buffer, offset);
     printf("CombinedField: %d\n", combinedField);
+
+    for(int i = 0; i < 32; i++) {
+        if((1 << (31 - i)) & combinedField)
+            cout << 1;
+        else
+            cout << 0;
+    }
 
     pack.sttl = combinedField & 0x07FFFFFF;
     pack.flagC = combinedField & (1 << 27);
@@ -219,8 +241,12 @@ void Package::setFlageMB(bool newFlag) {
     this->flagMB = newFlag; 
 }
 
-void Package::setData(vector<char> data) {
+bool Package::setData(vector<char> data) {
+    if(data.size() > MAX_PACK_DATA)
+        return false;
+    
     this->data = data;
+    return true;
 }
 
 
@@ -268,31 +294,40 @@ string Package::toString() const {
 }
 
 void Package::printAll() const {
+    cout << "=== Pacote ===" << endl;
+
+    // UUID
+    cout << "sid: ";
+    if(!this->sid.empty()) {
+        for(char c : this->uuid) {
+            cout << c;
+        }
+    }
+    cout << endl;
+
     cout << "sttl:" << this->sttl << endl;
-
     // Flags
-    cout << "Flag c" << this->flagC << endl;
-    cout << "Flag r" << this->flagR << endl;
-    cout << "flag ack" << this->flagACK << endl;
-    cout << "flag ar" << this->flagAR << endl;
-    cout << "flag mb" << this->flagMB << endl; 
+    cout << "Flag c: " << this->flagC << endl;
+    cout << "Flag r: " << this->flagR << endl;
+    cout << "flag ack: " << this->flagACK << endl;
+    cout << "flag ar: " << this->flagAR << endl;
+    cout << "flag mb: " << this->flagMB << endl; 
 
-    cout << "flag seqnum" << this->seqnum << endl;
-    cout << "" << this->acknum << endl;
-    cout << "" << this->window << endl;
-    cout << "" << this->fid << endl;
-    cout << "" << this->fo << endl;
+    cout << "seqnum: " << this->seqnum << endl;
+    cout << "acknum: " << this->acknum << endl;
+    cout << "window: " << this->window << endl;
+    cout << "fid: " << this->fid << endl;
+    cout << "fo: " << this->fo << endl;
 
-    cout << "" << this->data;
+    if(!this->data.empty()) {
+        for(char c : this->data) {
+            cout << c;
+        }
+    }
+    cout << endl;
 }
 
 // Para testar o buffer serializado
-void printBufferDec(const std::vector<char>& buffer) {
-    for (unsigned char c : buffer) {
-        printf("%d ", c);
-    }
-    printf("\n");
-}
 
 void Package::testPackage() {
     Package pgk;
@@ -320,7 +355,8 @@ void Package::testPackage() {
     vector<char> serTest = pgk.serialize();
     pgk.setFlagACK(true);
     pgk.setFlagC(true);
-    printBufferDec(serTest);
+
+    printBufferBits(serTest);
     cout << "Tamanho serialize:" << serTest.size() << endl;
     
 
