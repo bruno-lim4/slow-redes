@@ -1,13 +1,21 @@
 #include "UDPSocket.h"
 
-//construtor
+/*construtor do socket 
+indica que o socket não foi criado ainda
+que não há conexão e que não houve erro resgistrado por enquanto 
+*/
+
 UDPSocket::UDPSocket(){
     sockfd_ = -1;  
     isConnected_= false ;
     lastErrno_ = 0;
 }
 
-//destrutor 
+/*destrutor 
+encerra o socket caso ainda esteja aberto 
+reseta todos os estados, indicando que não há mais conexão 
+que não há erros registrados e que o socket não existe mais 
+*/
 UDPSocket::~UDPSocket(){
     if (sockfd_ >= 0) {
         ::close(sockfd_);
@@ -16,6 +24,14 @@ UDPSocket::~UDPSocket(){
         lastErrno_ = 0 ; 
     }
 }
+
+/*
+cria um socket, registra 
+o IP e porta destino (em peerAddr_), 
+usa inet_pton para validar o IP 
+se tudo foi bem-sucedido teremos isConnected_ como true 
+se algum erro ocorreu a função retorna falso 
+*/
 
 bool UDPSocket::connectTo(const string& ip, uint16_t port) {
 
@@ -50,6 +66,13 @@ bool UDPSocket::connectTo(const string& ip, uint16_t port) {
 
 }
 
+/*
+verifica se o socket foi previamente conectado 
+envia todos os dados para o destino (usando sendto) 
+retorna o número de bytes enviados ou -1 em caso 
+de erro (atualizando lastErrno_ nesse caso) 
+*/
+
 ssize_t UDPSocket::send(const vector<char> &segment){
 
     //verifica se connectTo foi chamado com sucesso 
@@ -76,6 +99,11 @@ ssize_t UDPSocket::send(const vector<char> &segment){
     return sent ; 
 }
 
+/*
+aguarda um tempo limite por dados, se der timeout ou erro retorna nullopt
+se há dados para receber a função recvfrom() é utilizado, 
+guardando os dados recebidos em vector<char> 
+*/
 optional<vector<char>> UDPSocket::receive(uint32_t timeout){
 
     if(sockfd_ < 0){ //socket não foi bem estabelecido
@@ -129,6 +157,7 @@ optional<vector<char>> UDPSocket::receive(uint32_t timeout){
 
 }
 
+// função apenas para retornar o último erro 
 int UDPSocket::getLastError() const{
     return lastErrno_ ; 
 }
