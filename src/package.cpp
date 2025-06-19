@@ -299,7 +299,7 @@ void Package::printAll() const {
     // UUID
     cout << "sid: ";
     if(!this->sid.empty()) {
-        for(char c : this->uuid) {
+        for(char c : this->sid) {
             cout << c;
         }
     }
