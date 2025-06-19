@@ -1,5 +1,6 @@
 #include <iostream>
+#include "package.hpp"
 
 int main() {
-    std::cout << "E ai, como vai??? Apenas criando as pastas do projeto\n";
+    Package::testPackage();
 }

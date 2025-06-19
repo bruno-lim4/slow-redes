@@ -37,6 +37,7 @@
         // Métodos utilitários para flags
         bool isAckOnly() const;
         bool isConnect() const;
+        bool isDisconnect() const;
         bool isRevive() const;
         bool isAccept() const;
         bool isMoreBits() const;
@@ -67,6 +68,7 @@
 
         // Métodos para debug/log (opcional)
         string toString() const;
+        static void testPackage();
     };
 
 #endif

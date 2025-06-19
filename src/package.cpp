@@ -100,11 +100,20 @@ Package Package::deserialize(const vector<char>& buffer) {
 // Pacotes ack devem ter números de ack iguais aos de seq, e não trasnportarem dados
 // Além da flag ativa
 bool Package::isAckOnly() const {
-    return this->flagACK && (this->acknum == this->seqnum) && this->data.empty();
+    return this->flagACK &&  (this->acknum == this->seqnum) && this->data.empty();
 }
 
+// Pacotes connect devem ter seqnum, acknum e sttl zerados;
 bool Package::isConnect() const {
-    return this->flagC;
+    return (this->sttl == 0) && (this->flagC)
+    && (this->seqnum == 0) && (this->acknum == 0)
+    && (this->data.empty());
+}
+
+// Pacotes disconnect devem ter as flags ack, conect e revive ligadas, além de
+// não enviarem dados
+bool Package::isDisconnect() const {
+    return (this->flagACK) && (this->flagC) && (this->flagR) && this->data.empty();
 }
 
 bool Package::isRevive() const {
@@ -206,11 +215,13 @@ void Package::setData(vector<char> data) {
 string Package::toString() const {
     stringstream ss;
     
+    ss << "=== Pacote SLOW ===" << endl;
+
     // Informações do cabeçalho
     // ss << "sid = " << this->sid << endl;
     ss << "seq = " << this->seqnum << endl;
     ss << "ack = " << this->acknum << endl;
-    ss << "Window" << this->window << endl;
+    ss << "Window = " << this->window << endl;
 
     // Caso o pacote seja de um segmento fragmentado
     if(this->flagMB) {
@@ -221,9 +232,10 @@ string Package::toString() const {
     // Indentificando o tipo do pacote
     if(this->isAckOnly())
         ss << "[ACK PACKAGE]" << endl;
-    if(this->flagC)
+    if(this->isConnect())
         ss << "[CONNECT PACKAGE]" << endl;
     if(this->flagR)
+    if(this->isDisconnect())
         ss << "[REVIVE PACKAGE]" << endl;
     if(this->flagAR)
         ss << "[ACCEPTED]" << endl;
@@ -235,6 +247,44 @@ string Package::toString() const {
             ss << c;
         }
     }
+    ss << endl;
 
     return ss.str();
+}
+
+void Package::testPackage() {
+    Package pgk;
+    vector<char> testData = {'t', 'e', 's', 't', 'e'};
+
+    // Pacote sem nada
+    pgk.toString();
+
+    // ack package
+    pgk.setFlagACK(true);
+    pgk.toString();
+    cout << pgk.toString();
+
+    // connect Package 
+    pgk.setFlagACK(false);
+    pgk.setFlagC(true);
+    cout << pgk.toString();
+
+    // data package
+    pgk.setFlagACK(true);
+    pgk.setData(testData);
+    cout <<pgk.toString();
+
+    // Serializando
+    vector<char> serTest = pgk.serialize();
+    for(char c : serTest) {
+        printf("Dado ");
+        printf("%c\n", c);
+    }
+    cout << "\n\n";
+
+    // Deserializando
+    Package pgk2 = pgk.deserialize(serTest);
+    cout << pgk2.toString();
+
+    return;
 }
