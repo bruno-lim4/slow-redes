@@ -17,7 +17,7 @@ connection.o: connection.cpp connection.hpp
 package.o: package.cpp package.hpp
 	g++ $(FLAGS) -c package.cpp
 
-UDPSocket.o: UDPSocket.cpp UDPSocket.h
+UDPSocket.o: UDPSocket.cpp UDPSocket.hpp
 	g++ $(FLAGS) -c UDPSocket.cpp
 
 

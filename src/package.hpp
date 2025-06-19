@@ -68,6 +68,7 @@
 
         // Métodos para debug/log (opcional)
         string toString() const;
+        void printAll() const;
         static void testPackage();
     };
 

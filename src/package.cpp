@@ -8,10 +8,14 @@
 //================================
 
 // Função auxiliar que serializa campos genéricos em um buffer
+// Os bites são escritos em little endian
 template<typename T>
 void serializeField(vector<char> &buffer, T value) {
-    for(size_t i = 0; i < sizeof(T); i += 8) {
-        buffer.push_back((value >> i) & 0xFF);
+    using Unsigned = std::make_unsigned_t<T>;
+    Unsigned v = static_cast<Unsigned>(value);
+
+    for (std::size_t i = 0; i < sizeof(T); ++i) {
+        buffer.push_back(static_cast<char>( (v >> (i * 8)) & 0xFF ));
     }
 }
 
@@ -34,6 +38,7 @@ vector<char> Package::serialize() const {
         | ((this->flagACK ? 1 : 0) << 29)
         | ((this->flagAR ? 1 : 0) << 30)
         | ((this->flagMB ? 1 : 0) << 31);
+    cout << combinedField << endl;
     serializeField(buffer, combinedField);
 
     serializeField(buffer,  this->seqnum);
@@ -51,11 +56,19 @@ vector<char> Package::serialize() const {
 // Não sei se isso vai funcionar :(
 template<typename T>
 T deserializeField(const vector<char> &buffer, size_t &offset) {
-    T value = 0;
-    for(size_t i = 0; i < sizeof(T); i++) {
-        value |= (static_cast<uint8_t>(buffer[offset + i] << (i * 8)));
+    using Unsigned = std::make_unsigned_t<T>;
+    Unsigned value = 0;
+
+    // Deserializando cada byte
+    for (std::size_t i = 0; i < offset; ++i) {
+        value |= static_cast<Unsigned>(
+                     static_cast<unsigned char>(buffer[offset + i])
+                 ) << (i * 8);
     }
-    offset += sizeof(T);
+
+    // Avançando o ponteiro para a leitura
+    offset += sizeof(T);       
+    return static_cast<T>(value);
 
     return value;
 }
@@ -73,6 +86,8 @@ Package Package::deserialize(const vector<char>& buffer) {
 
     // Deserializando sttl e flags
     uint32_t combinedField = deserializeField<uint32_t>(buffer, offset);
+    printf("CombinedField: %d\n", combinedField);
+
     pack.sttl = combinedField & 0x07FFFFFF;
     pack.flagC = combinedField & (1 << 27);
     pack.flagR = combinedField & (1 << 28);
@@ -252,6 +267,33 @@ string Package::toString() const {
     return ss.str();
 }
 
+void Package::printAll() const {
+    cout << "sttl:" << this->sttl << endl;
+
+    // Flags
+    cout << "Flag c" << this->flagC << endl;
+    cout << "Flag r" << this->flagR << endl;
+    cout << "flag ack" << this->flagACK << endl;
+    cout << "flag ar" << this->flagAR << endl;
+    cout << "flag mb" << this->flagMB << endl; 
+
+    cout << "flag seqnum" << this->seqnum << endl;
+    cout << "" << this->acknum << endl;
+    cout << "" << this->window << endl;
+    cout << "" << this->fid << endl;
+    cout << "" << this->fo << endl;
+
+    cout << "" << this->data;
+}
+
+// Para testar o buffer serializado
+void printBufferDec(const std::vector<char>& buffer) {
+    for (unsigned char c : buffer) {
+        printf("%d ", c);
+    }
+    printf("\n");
+}
+
 void Package::testPackage() {
     Package pgk;
     vector<char> testData = {'t', 'e', 's', 't', 'e'};
@@ -276,11 +318,11 @@ void Package::testPackage() {
 
     // Serializando
     vector<char> serTest = pgk.serialize();
-    for(char c : serTest) {
-        printf("Dado ");
-        printf("%c\n", c);
-    }
-    cout << "\n\n";
+    pgk.setFlagACK(true);
+    pgk.setFlagC(true);
+    printBufferDec(serTest);
+    cout << "Tamanho serialize:" << serTest.size() << endl;
+    
 
     // Deserializando
     Package pgk2 = pgk.deserialize(serTest);
