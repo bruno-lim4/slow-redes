@@ -7,6 +7,7 @@ using namespace std;
 #define MAX_PACK_DATA 1440
 
 bool ProtocolHandler::handshake(UDPSocket &socket, const string &ip, uint16_t port){
+    
     //estabelecendo a conexão 
     if(!socket.connectTo(ip, port)){
         cout << ip << " " << port << endl;
@@ -47,11 +48,13 @@ bool ProtocolHandler::handshake(UDPSocket &socket, const string &ip, uint16_t po
 bool ProtocolHandler::sendData(UDPSocket &socket, const vector<char> &data){
     // ve quantos bytes
     int total_left = data.size();
+    //ver quantos caracteres quero gravar
+    cout << "tamanho " << total_left << "\n" ; 
     // byte atual
     int at = 0;
 
-    // vetor de pacotes (pode haver fragemtacao)
-    vector<Package> packages;
+    // vetor de pacotes (pode haver fragemtacao) + tamanho da mensagem 
+    vector<pair<Package, int>> packages;
 
     // enquanto tiver algum byte sem pacote...
     while(total_left > 0) {
@@ -59,13 +62,17 @@ bool ProtocolHandler::sendData(UDPSocket &socket, const vector<char> &data){
 
         vector<char> aux;
 
-        // se caber tudo
+        int sz = MAX_PACK_DATA ;
+
+        // se couber tudo
         if (MAX_PACK_DATA >= total_left) {
-            aux.insert(aux.end(), data.begin()+at, data.begin()+at+(total_left-1));
-            total_left -= total_left;
-        } else { // se nao caber
+            aux.insert(aux.end(), data.begin()+at, data.begin()+at+total_left);
+            sz = min(sz, total_left);
+            total_left -= total_left ;
+        } else { // se nao couber
             // grava no max MAX_PACK_DATA
-            aux.insert(aux.end(), data.begin()+at, data.begin()+at+(MAX_PACK_DATA-1));
+            //checar se é MAX_PACK_DATA-1 ou não (maybe)
+            aux.insert(aux.end(), data.begin()+at, data.begin()+at+MAX_PACK_DATA);
             // avanca
             at += MAX_PACK_DATA;
             total_left -= MAX_PACK_DATA;
@@ -74,33 +81,41 @@ bool ProtocolHandler::sendData(UDPSocket &socket, const vector<char> &data){
         // colcoa aux como data no meu package
         pack.setData(aux);
         // coloca esse pack na minha lista de packages
-        packages.push_back(pack);
+        packages.push_back({pack, sz});
     }
 
     // se ocorreu fragmentaco
     if (packages.size() > 1) {
         // seta a flag MB, e as info de fid e fo como devem ser setadas
         for(int i = 0; i < (int) packages.size() - 1; i++) {
-            packages[i].setFlageMB(true);
-            packages[i].setFid(fid);
-            packages[i].setFo(i);
+            (packages[i].first).setFlageMB(true);
+            (packages[i].first).setFid(fid);
+            (packages[i].first).setFo(i);
         }
         fid += 1;
     }
 
     // envia geral - e vai checando os ACKs recebidos
+    int new_seq = 0 ; 
+
     for(auto p : packages) {
-        conn.handleOutput(p, 1);
-        socket.send(p.serialize());
-        Package ack = receiveLoop(socket, p.getSeqnum());
+        conn.handleOutput(p.first, 1);
+        //arrumar o seqnum 
+        //eh pra somar o payload? Se sim descomentar:
+        //(p.first).setSeqnum((p.first).getSeqnum()+new_seq) ;
+        (p.first).setSeqnum((p.first).getSeqnum()+1) ; 
+        (p.first).printAll() ; 
+        socket.send((p.first).serialize());
+        Package ack = receiveLoop(socket, (p.first).getSeqnum());
         conn.handleIncoming(ack);
+        new_seq += p.second ; 
     }
 
     // retorna se a conexao ainda ta ativa
     return conn.isEstablished();
 }
 
-/*
+/* 
 Aguarda até receber um pacote 
 que o acknum seja o valor que estou esperando
 */

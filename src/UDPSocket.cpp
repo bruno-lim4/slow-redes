@@ -81,7 +81,7 @@ ssize_t UDPSocket::send(const vector<char> &segment){
         lastErrno_ = ENOTCONN ; 
         return -1 ; 
     }
-
+    
     //mandar os bytes via UDP para o endereço IP e porta armazenados em peerAddr_
     ssize_t sent = sendto(
         sockfd_, 

@@ -85,7 +85,6 @@ void Connection::handleOutput(Package& package, int opt) {
         if (!(this->state == State::ESTABLISHED)) break;
         package.setFlagACK(true);
         package.setAcknum(this->seqnum);
-        //this->seqnum++;
         package.setSeqnum(this->seqnum);
         this->acknum = this->seqnum;
 
