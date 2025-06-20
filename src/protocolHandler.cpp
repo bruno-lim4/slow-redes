@@ -18,7 +18,7 @@ bool ProtocolHandler::handshake(UDPSocket &socket, const string &ip, uint16_t po
     // cria package de connect - e informa ao connection
     Package connectPc;
     conn.handleOutput(connectPc, 2);
-    
+
     // envia connect
     auto envio = connectPc.serialize();
     socket.send(envio) ; 
@@ -105,13 +105,12 @@ Aguarda até receber um pacote
 que o acknum seja o valor que estou esperando
 */
 
-Package ProtocolHandler::receiveLoop(UDPSocket &socket, uint32_t Ackesperado){
+Package ProtocolHandler::receiveLoop(UDPSocket &socket, uint32_t ackEsperado){
     for(int i = 0 ; i < 3 ; i++){
         auto resp = socket.receive(1000) ;
         if(resp.has_value()){
-            Package p ; 
-            p.deserialize(resp.value()) ; 
-            if(p.getAcknum() == Ackesperado) return p;
+            Package p = Package::deserialize(resp.value());
+            if(p.getAcknum() == ackEsperado) return p;
         } 
     }
 

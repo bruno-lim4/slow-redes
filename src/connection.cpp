@@ -66,6 +66,7 @@ void Connection::handleIncoming(const Package& package) {
             
         } else if (!package.isAccept()) {
             // foi rejeitado
+            cout << "conexão rejeitada\n";
             this->state = State::DISCONNECTED;
         }
 

@@ -1,6 +1,7 @@
 #ifndef PACKAGE_H
 #define PACKAGE_H
     #include <iostream>
+    #include <array>
     #include <vector>
     #include <sstream>
     #include <cstdint>
@@ -15,7 +16,7 @@
         uint32_t sttl = 0;          // Time to live (convertido para 27 bits no pacote final)
         uint32_t seqnum = 0;        // Número de sequência
         uint32_t acknum = 0;        // Número de acknowledgement
-        uint16_t window = 0;
+        uint16_t window = Package::MAX_WINDOW_SIZE;
         uint8_t fid = 0;            // Id para pacotes de um segmento fragmentado
         uint8_t fo = 0;             // Indica a ordem de pacotes fragmentados
 
@@ -30,6 +31,7 @@
         vector<char> data;
 
     public:
+        static const uint16_t MAX_WINDOW_SIZE = 1440;
 
         // Métodos principais
         vector<char> serialize() const;
