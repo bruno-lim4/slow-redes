@@ -16,7 +16,8 @@ void Connection::handleIncoming(const Package& package) {
         if (!package.isAccept()) return;
 
         this->sttl = package.getSttl();
-        this->seqnum = package.getSeqnum();
+        this->acknum = package.getSeqnum();
+        this->seqnum = this->acknum + 1;
 
         this->state = State::ESTABLISHED;
 
@@ -27,8 +28,8 @@ void Connection::handleIncoming(const Package& package) {
         if (!package.isAckOnly()) return;
 
         if (package.getAcknum() == this->seqnum) {
-            this->seqnum++;
             this->acknum = package.getSeqnum();
+            this->seqnum = this->acknum + 1;
 
             this->sttl = package.getSttl();
             
@@ -41,8 +42,8 @@ void Connection::handleIncoming(const Package& package) {
         if (!package.isAckOnly()) return;
 
         if (package.getAcknum() == this->seqnum) {
-            this->seqnum++;
             this->acknum = package.getSeqnum();
+            this->seqnum = this->acknum + 1;
 
             this->sttl = package.getSttl();
             
@@ -56,8 +57,8 @@ void Connection::handleIncoming(const Package& package) {
         if (package.isAckOnly() && package.isAccept()) {
             // deu bom, checa se dá ack no passado (minha req de revive)
             if (package.getAcknum() == this->seqnum) {
-                this->seqnum++;
                 this->acknum = package.getSeqnum();
+            this->seqnum = this->acknum + 1;
 
                 this->sttl = package.getSttl();
 
@@ -75,6 +76,8 @@ void Connection::handleIncoming(const Package& package) {
     default:
         break;
     }
+
+    cout << "Atualizei: " << this->acknum << " " << this->seqnum << "\n";
 } 
 
 void Connection::handleOutput(Package& package, int opt) {
@@ -84,9 +87,8 @@ void Connection::handleOutput(Package& package, int opt) {
         // manda dados normal
         if (!(this->state == State::ESTABLISHED)) break;
         package.setFlagACK(true);
-        package.setAcknum(this->seqnum);
+        package.setAcknum(this->acknum);
         package.setSeqnum(this->seqnum);
-        this->acknum = this->seqnum;
 
         this->state = State::ESTABLISHED;
         break;
@@ -107,10 +109,8 @@ void Connection::handleOutput(Package& package, int opt) {
         package.setFlagACK(true);
         package.setFlagC(true);
         package.setFlagR(true);
-        package.setAcknum(this->seqnum);
-        //this->seqnum++;
+        package.setAcknum(this->acknum);
         package.setSeqnum(this->seqnum);
-        this->acknum = this->seqnum;
 
         this->state = State::CONNECT_SENT;
         break;
@@ -120,10 +120,8 @@ void Connection::handleOutput(Package& package, int opt) {
         if (!(this->state == State::DISCONNECTED)) break;
         package.setFlagACK(true);
         package.setFlagR(true);
-        package.setAcknum(this->seqnum);
-        //this->seqnum++;
+        package.setAcknum(this->acknum);
         package.setSeqnum(this->seqnum);
-        this->acknum = this->seqnum;
 
         this->state = State::REVIVE_SENT;
     

@@ -23,9 +23,11 @@ bool ProtocolHandler::handshake(UDPSocket &socket, const string &ip, uint16_t po
     // envia connect
     auto envio = connectPc.serialize();
     socket.send(envio) ; 
+    cout << connectPc.toString() << "\n";
 
     // recebe resposta
     Package resposta = ProtocolHandler::receiveLoop(socket, connectPc.getSeqnum());
+    cout << resposta.toString() << "\n";
     // mando pro connection
     conn.handleIncoming(resposta); 
     // connection altera esse pacote pra simbolizar um envio com ACK
@@ -33,11 +35,12 @@ bool ProtocolHandler::handshake(UDPSocket &socket, const string &ip, uint16_t po
 
     // envio ACK sem dados
     auto envio2 = resposta.serialize();
+    cout << resposta.toString() << "\n";
     socket.send(envio2) ; 
 
     // recebo uma resposta
     Package ack_com_dados = ProtocolHandler::receiveLoop(socket, resposta.getSeqnum());
-
+    cout << ack_com_dados.toString() << "\n";
     // falo pra conection interpretar a resposta
     conn.handleIncoming(ack_com_dados); 
 
@@ -103,10 +106,10 @@ bool ProtocolHandler::sendData(UDPSocket &socket, const vector<char> &data){
         //arrumar o seqnum 
         //eh pra somar o payload? Se sim descomentar:
         //(p.first).setSeqnum((p.first).getSeqnum()+new_seq) ;
-        (p.first).setSeqnum((p.first).getSeqnum()+1) ; 
         (p.first).printAll() ; 
         socket.send((p.first).serialize());
         Package ack = receiveLoop(socket, (p.first).getSeqnum());
+        ack.printAll();
         conn.handleIncoming(ack);
         new_seq += p.second ; 
     }
