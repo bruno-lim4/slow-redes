@@ -59,9 +59,7 @@ bool ProtocolHandler::sendData(UDPSocket &socket, const vector<char> &data){
     // enquanto tiver algum byte sem pacote...
     while(total_left > 0) {
         Package pack;
-
         vector<char> aux;
-
         int sz = MAX_PACK_DATA ;
 
         // se couber tudo
@@ -104,11 +102,18 @@ bool ProtocolHandler::sendData(UDPSocket &socket, const vector<char> &data){
         //eh pra somar o payload? Se sim descomentar:
         //(p.first).setSeqnum((p.first).getSeqnum()+new_seq) ;
         (p.first).setSeqnum((p.first).getSeqnum()+1) ; 
-        (p.first).printAll() ; 
+        (p.first).printAll() ;
+
+        //Debug - print do pacote de envio
+        p.first.printAll();
+
         socket.send((p.first).serialize());
         Package ack = receiveLoop(socket, (p.first).getSeqnum());
         conn.handleIncoming(ack);
         new_seq += p.second ; 
+
+        //Debug - print do pacote de ack recebido
+        ack.printAll();
     }
 
     // retorna se a conexao ainda ta ativa

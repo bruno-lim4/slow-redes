@@ -33,6 +33,8 @@ void serializeField(vector<char> &buffer, T value) {
     }
 }
 
+
+
 // Transforma os dados do objeto na sequnecia de bits a ser trans
 // mitida os enviando em um vector de chars;
 vector<char> Package::serialize() const {
@@ -344,7 +346,7 @@ void Package::printAll() const {
             cout << c;
         }
     }
-    cout << endl;
+    cout << endl << endl;
 }
 
 // Para testar o buffer serializado
