@@ -29,6 +29,7 @@ bool ProtocolHandler::handshake(UDPSocket &socket, const string &ip, uint16_t po
     // recebe resposta
     Package resposta = ProtocolHandler::receiveLoop(socket, connectPc.getSeqnum());
     cout << resposta.toString() << "\n";
+
     // mando pro connection
     conn.handleIncoming(resposta); 
     // connection altera esse pacote pra simbolizar um envio com ACK
@@ -129,7 +130,7 @@ que o acknum seja o valor que estou esperando
 
 Package ProtocolHandler::receiveLoop(UDPSocket &socket, uint32_t ackEsperado){
     for(int i = 0 ; i < 3 ; i++){
-        auto resp = socket.receive(1000) ;
+        auto resp = socket.receive(3000);
 
         Package::printBufferBits(resp.value());
 

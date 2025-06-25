@@ -1,4 +1,5 @@
 #include "UDPSocket.hpp"
+#include "package.hpp"
 
 /*construtor do socket 
 indica que o socket não foi criado ainda
@@ -97,6 +98,10 @@ ssize_t UDPSocket::send(const vector<char> &segment){
         return -1 ; 
     }
 
+    printf("Enviando:");
+    Package::printBufferBits(segment);
+    printf("\n");
+
     return sent ; 
 }
 
@@ -106,7 +111,6 @@ se há dados para receber a função recvfrom() é utilizado,
 guardando os dados recebidos em vector<char> 
 */
 optional<vector<char>> UDPSocket::receive(uint32_t timeout){
-
     if(sockfd_ < 0){ //socket não foi bem estabelecido
         lastErrno_ = EBADF ; 
         return nullopt ; 
@@ -124,6 +128,7 @@ optional<vector<char>> UDPSocket::receive(uint32_t timeout){
     //bloquear até ter dados para leitura ou estourar o tv (time limit)
     int sel = select(sockfd_ + 1, &readfd, nullptr, nullptr, &tv);
 
+
     if(sel < 0){
         lastErrno_ = errno ; 
         return nullopt ; 
@@ -131,6 +136,7 @@ optional<vector<char>> UDPSocket::receive(uint32_t timeout){
 
     //não recebeu nada (estourou tempo limite)
     if(sel == 0) return nullopt ; 
+
 
     //sel > 0 -> sockfd_ está pronto pra leitura 
     char buffer[TAM_BUF];
@@ -154,6 +160,10 @@ optional<vector<char>> UDPSocket::receive(uint32_t timeout){
     vector<char> result(static_cast<size_t>(recvd));
     memcpy(result.data(), buffer, static_cast<size_t>(recvd));
     
+    printf("Recebendo:\n");
+    Package::printBufferBits(result);
+    printf("\n");
+
     return result;
 
 }

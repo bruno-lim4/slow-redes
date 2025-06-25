@@ -3,16 +3,23 @@
 // Internal constants for package's size control
 #define MAX_PACK_DATA 1440
 
-void printBits(char byte) {
-    for (int i = 7; i >= 0; --i) {
-        std::cout << ((byte >> i) & 1);
+void printBits(uint32_t value, int bitQntd) {
+    //printf("bits:\n");
+    for(int i = bitQntd - 1; i>= 0; i--) {
+        if ((1<<i)&value) {
+            printf("1");
+        } else {
+            printf("0");
+        }
     }
-    std::cout << std::endl;
+    printf("\n");
+    
 }
 
 void Package::printBufferBits(const vector<char>& buffer) {
-    for (unsigned char c : buffer) {
-        printBits(c);
+    for (char c : buffer) {
+        uint32_t val = (uint32_t) c;
+        printBits(val, 8);
     }
     printf("\n");
 }
@@ -21,17 +28,17 @@ void Package::printBufferBits(const vector<char>& buffer) {
 // MÉTODOS PRINCIPAIS
 //================================
 
-// Função auxiliar que serializa campos genéricos em um buffer
-// Os bites são escritos em little endian
 
-template<typename T>
-void serializeField(vector<char> &buffer, T value) {
-    using Unsigned = std::make_unsigned_t<T>;
-    Unsigned v = static_cast<Unsigned>(value);
-
-    for (std::size_t i = 0; i < sizeof(T); ++i) {
-        buffer.push_back(static_cast<char>( (v >> (i * 8)) & 0xFF ));
+// Para cada byte de um dado, escreve deus bits em little endian
+void serializeField(vector<char> &buffer, uint32_t value, int byteQntd) {
+    for(int i = 0; i < byteQntd; i++) {
+        char opa = ((value & (0xFF << (byteQntd-i-1)*8)) >> (byteQntd-i-1)*8);
+        printf("---");
+        printBits(opa, 8);
+        buffer.push_back(opa);
     }
+    printf("\n");
+
 }
 
 // Transforma os dados do objeto na sequnecia de bits a ser trans
@@ -46,6 +53,12 @@ vector<char> Package::serialize() const {
     // Convertendo os dados do cabeçalho para little endian
     buffer.insert(buffer.begin(), this->sid.begin(), this->sid.end());
 
+    uint32_t combinedField2 = sttl << 5;
+    combinedField2 |= ((uint32_t) this->flagC) << 4;
+    combinedField2 |= ((uint32_t) this->flagR) << 3;
+    combinedField2 |= ((uint32_t) this->flagACK) << 2;
+    combinedField2 |= ((uint32_t) this->flagAR) << 1;
+    combinedField2 |= ((uint32_t) this->flagMB) << 0;
 
     uint32_t combinedField = \
         // Write the STTL in the top 27 bits
@@ -57,69 +70,79 @@ vector<char> Package::serialize() const {
         | (static_cast<uint32_t>(this->flagMB) << 27)
         | this->sttl;
 
-    serializeField(buffer, combinedField);
-
-    serializeField(buffer,  this->seqnum);
-    serializeField(buffer, this->acknum);
-    serializeField(buffer, this->window);
-    serializeField(buffer, this->fid);
-    serializeField(buffer, this->fo);
-
+    printBits(combinedField2, 32);
+        
+    serializeField(buffer, combinedField, 4);
+    serializeField(buffer, this->seqnum, 4);
+    serializeField(buffer, this->acknum, 4);
+    serializeField(buffer, this->window, 2);
+    serializeField(buffer, this->fid, 1);
+    serializeField(buffer, this->fo, 1);
+        
     // Serializando os dados (basta copiar para o buffer)
     buffer.insert(buffer.end(), this->data.begin(), this->data.end());
 
     return buffer;
 }
 
-// Não sei se isso vai funcionar :(
-template<typename T>
-T deserializeField(const vector<char> &buffer, size_t &offset) {
-    using Unsigned = std::make_unsigned_t<T>;
-    Unsigned value = 0;
+// reescreve os inteiros do vetor de bytes da resposta
+uint32_t deserializeField(const vector<char> &buffer, int byteQntd, size_t &offset) {
+    uint32_t val = 0;
 
-    // Deserializando cada byte
-    for (std::size_t i = 0; i < sizeof(T); ++i) {
-        value |= static_cast<Unsigned>(
-                     static_cast<unsigned char>(buffer[offset + i])
-                 ) << (i * 8);
+    for(int i = 0; i < byteQntd; i++) {
+        val <<= 8;
+        val |= buffer[offset+(byteQntd - 1 - i)];
     }
 
-    // Avançando o ponteiro para a leitura
-    offset += sizeof(T);       
-    return static_cast<T>(value);
-
-    return value;
+    offset += byteQntd;
+    return val;
 }
 
 Package Package::deserialize(const vector<char>& buffer) {
     Package pack;
     size_t offset = 0; // Offset para controlar o indice do próximo campo no pacote
-
+    // 
     // Para o sid
-    for (int i = 0; i < 16; ++i) {
-        pack.sid[i] = static_cast<uint8_t>(buffer[offset]);
+    for (int i = 0; i < 16; i++) {
+        pack.sid[i] = buffer[offset];
         offset++;
     }
 
     // Deserializando sttl e flags
-    uint32_t combinedField = deserializeField<uint32_t>(buffer, offset);
+    uint32_t combinedField = deserializeField(buffer, 4, offset);
+
+    /*
+    printf("Aquiiiiii\n");
+    for(int i = 31; i>= 0; i--) {
+        if ((1<<i)&combinedField) {
+            printf("1");
+        } else {
+            printf("0");
+        }
+    }
+    printf("\n\n");
+    */
 
     // Get top 27 bits for the STTL
-    pack.sttl = combinedField >> 5;
+    pack.sttl = 0;
+    for(int i = 0; i < 27; i++) {
+        pack.sttl |= (1<<i)&combinedField;
+    }
 
+    // Reobtendo as flags
+    pack.flagC = combinedField & (1 << 31);
+    pack.flagR = combinedField & (1 << 30);
+    pack.flagACK = combinedField & (1 << 29);
+    pack.flagAR = combinedField & (1 << 28);
+    pack.flagMB = combinedField & (1 << 27);
 
-    pack.flagC = combinedField & (1 << 4);
-    pack.flagR = combinedField & (1 << 3);
-    pack.flagACK = combinedField & (1 << 2);
-    pack.flagAR = combinedField & (1 << 1);
-    pack.flagMB = combinedField & 1;
 
     // Deserializando o restante dos campos
-    pack.seqnum = deserializeField<uint32_t>(buffer, offset);
-    pack.acknum = deserializeField<uint32_t>(buffer, offset);
-    pack.window = deserializeField<uint16_t>(buffer, offset);
-    pack.fid = deserializeField<uint8_t>(buffer, offset);
-    pack.fo = deserializeField<uint8_t>(buffer, offset);
+    pack.seqnum = deserializeField(buffer, 4, offset);
+    pack.acknum = deserializeField(buffer, 4, offset);
+    pack.window = deserializeField(buffer, 2, offset);
+    pack.fid = deserializeField(buffer, 1, offset);
+    pack.fo = deserializeField(buffer, 1, offset);
 
     // Deserializando o payload de dados
     pack.data.reserve(buffer.size() - offset);
@@ -368,8 +391,11 @@ void Package::testPackage() {
     cout << pgk.toString();
 
     // data package
+    pgk.setAcknum(2);
+    pgk.setSeqnum(4);
     pgk.setFlagACK(true);
     pgk.setData(testData);
+    pgk.setWindow(2);
     cout <<pgk.toString();
 
     // Serializando

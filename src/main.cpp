@@ -9,9 +9,6 @@
 #define SERVER_PORT 7033
 
 int main() {
-    const string serverIp = "142.93.184.175";
-    uint16_t serverPort = 7033;
-
     UDPSocket socket;
     ProtocolHandler pc;
     bool checkCom;
