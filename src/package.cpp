@@ -10,7 +10,7 @@ void printBits(char byte) {
     std::cout << std::endl;
 }
 
-void printBufferBits(const std::vector<char>& buffer) {
+void Package::printBufferBits(const vector<char>& buffer) {
     for (unsigned char c : buffer) {
         printBits(c);
     }
@@ -23,6 +23,7 @@ void printBufferBits(const std::vector<char>& buffer) {
 
 // Função auxiliar que serializa campos genéricos em um buffer
 // Os bites são escritos em little endian
+
 template<typename T>
 void serializeField(vector<char> &buffer, T value) {
     using Unsigned = std::make_unsigned_t<T>;
@@ -48,13 +49,13 @@ vector<char> Package::serialize() const {
 
     uint32_t combinedField = \
         // Write the STTL in the top 27 bits
-        (this->sttl << 5)
         // Write the flags in the bottom 5 bits
-        | (static_cast<uint32_t>(this->flagC) << 4)
-        | (static_cast<uint32_t>(this->flagR) << 3)
-        | (static_cast<uint32_t>(this->flagACK) << 2)
-        | (static_cast<uint32_t>(this->flagAR) << 1)
-        | (static_cast<uint32_t>(this->flagMB));
+        (static_cast<uint32_t>(this->flagC) << 31)
+        | (static_cast<uint32_t>(this->flagR) << 30)
+        | (static_cast<uint32_t>(this->flagACK) << 29)
+        | (static_cast<uint32_t>(this->flagAR) << 28)
+        | (static_cast<uint32_t>(this->flagMB) << 27)
+        | this->sttl;
 
     serializeField(buffer, combinedField);
 

@@ -74,6 +74,7 @@
         string toString() const;
         void printAll() const;
         static void testPackage();
+        static void printBufferBits(const vector<char>& buffer);
     };
 
 #endif

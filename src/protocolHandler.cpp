@@ -1,4 +1,5 @@
 #include "protocolHandler.hpp"
+#include "package.hpp"
 #include <iostream>
 
 
@@ -106,7 +107,10 @@ bool ProtocolHandler::sendData(UDPSocket &socket, const vector<char> &data){
         //arrumar o seqnum 
         //eh pra somar o payload? Se sim descomentar:
         //(p.first).setSeqnum((p.first).getSeqnum()+new_seq) ;
-        (p.first).printAll() ; 
+        (p.first).printAll() ;
+        vector<char> test = p.first.serialize();
+        Package::printBufferBits(test);
+
         socket.send((p.first).serialize());
         Package ack = receiveLoop(socket, (p.first).getSeqnum());
         ack.printAll();
@@ -126,6 +130,9 @@ que o acknum seja o valor que estou esperando
 Package ProtocolHandler::receiveLoop(UDPSocket &socket, uint32_t ackEsperado){
     for(int i = 0 ; i < 3 ; i++){
         auto resp = socket.receive(1000) ;
+
+        Package::printBufferBits(resp.value());
+
         if(resp.has_value()){
             Package p = Package::deserialize(resp.value());
             if(p.getAcknum() == ackEsperado) return p;
