@@ -12,7 +12,7 @@
     {
     private:
         Connection conn;
-        uint8_t fid = 1;
+        uint8_t fid = 0;
         Package receiveLoop(UDPSocket &socket, uint32_t Ackesperado);
     public:
         bool handshake(UDPSocket &socket, const string &ip, uint16_t port);

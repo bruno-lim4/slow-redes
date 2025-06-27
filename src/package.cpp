@@ -338,8 +338,8 @@ void Package::printAll() const {
     cout << "seqnum: " << this->seqnum << endl;
     cout << "acknum: " << this->acknum << endl;
     cout << "window: " << this->window << endl;
-    cout << "fid: " << this->fid << endl;
-    cout << "fo: " << this->fo << endl;
+    printf("fid: %d\n", this->fid);
+    printf("fo: %d\n", this->fo);
 
     if(!this->data.empty()) {
         for(char c : this->data) {

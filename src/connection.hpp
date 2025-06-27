@@ -33,7 +33,7 @@ private:
     uint32_t seqnum = 0;
     uint32_t acknum = 0;
     uint32_t sttl = 0;
-    // adiciona sid
+    array<char,16> sid;
 };
 
 #endif

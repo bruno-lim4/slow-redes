@@ -16,7 +16,9 @@ void Connection::handleIncoming(const Package& package) {
         if (!package.isAccept()) return;
 
         this->sttl = package.getSttl();
-        this->seqnum = package.getSeqnum();
+        this->sid = package.getSid();
+        this->seqnum = package.getSeqnum()+1;
+        this->acknum = package.getSeqnum();
 
         this->state = State::ESTABLISHED;
 
@@ -84,9 +86,9 @@ void Connection::handleOutput(Package& package, int opt) {
         // manda dados normal
         if (!(this->state == State::ESTABLISHED)) break;
         package.setFlagACK(true);
-        package.setAcknum(this->seqnum);
+        package.setAcknum(this->acknum);
         package.setSeqnum(this->seqnum);
-        this->acknum = this->seqnum;
+        package.setSid(this->sid);
 
         this->state = State::ESTABLISHED;
         break;
@@ -107,10 +109,9 @@ void Connection::handleOutput(Package& package, int opt) {
         package.setFlagACK(true);
         package.setFlagC(true);
         package.setFlagR(true);
-        package.setAcknum(this->seqnum);
-        //this->seqnum++;
+        package.setAcknum(this->acknum);
         package.setSeqnum(this->seqnum);
-        this->acknum = this->seqnum;
+        package.setSid(this->sid);
 
         this->state = State::CONNECT_SENT;
         break;
@@ -120,10 +121,9 @@ void Connection::handleOutput(Package& package, int opt) {
         if (!(this->state == State::DISCONNECTED)) break;
         package.setFlagACK(true);
         package.setFlagR(true);
-        package.setAcknum(this->seqnum);
-        //this->seqnum++;
+        package.setAcknum(this->acknum);
         package.setSeqnum(this->seqnum);
-        this->acknum = this->seqnum;
+        package.setSid(this->sid);
 
         this->state = State::REVIVE_SENT;
     
