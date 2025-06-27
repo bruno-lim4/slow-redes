@@ -35,5 +35,7 @@ int main() {
 
     if(pc.Disconnect(socket)) cout << "deu bom\n" ; 
 
+    if(pc.sendRevive(socket)) cout << "revivi\n";
+
     return 0;
 }

@@ -1,7 +1,6 @@
 #include "protocolHandler.hpp"
 #include <iostream>
 
-
 using namespace std; 
 
 #define MAX_PACK_DATA 1440
@@ -96,15 +95,12 @@ bool ProtocolHandler::sendData(UDPSocket &socket, const vector<char> &data){
             (packages[i]).setFid(this->fid);
             (packages[i]).setFo(i);
         }
+        (packages[packages.size() - 1]).setFlageMB(false);
         this->fid += 1;
     }
 
     for(auto p : packages) {
-        printf("%d\n", p.getFid());
-        printf("%d\n", p.getFo());
         conn.handleOutput(p, 1);
-        printf("%d\n", p.getFid());
-        printf("%d\n", p.getFo());
     
         //arrumar o seqnum 
         //eh pra somar o payload? Se sim descomentar:
@@ -112,6 +108,8 @@ bool ProtocolHandler::sendData(UDPSocket &socket, const vector<char> &data){
         //Debug - print do pacote de envio
         printf("Ei. Estou enviando dados\n");
         p.printAll();
+
+        printf("tam: %ld\n", p.serialize().size());
 
         socket.send(p.serialize());
         Package ack = receiveLoop(socket, p.getSeqnum());
@@ -121,6 +119,21 @@ bool ProtocolHandler::sendData(UDPSocket &socket, const vector<char> &data){
     // retorna se a conexao ainda ta ativa
     return conn.isEstablished();
 }
+
+
+bool ProtocolHandler::sendRevive(UDPSocket &socket) {
+    Package pack;
+    conn.handleOutput(pack, 4);
+    printf("Dou Revive:\n");
+    pack.printAll();
+    socket.send(pack.serialize());
+
+    Package ack = receiveLoop(socket, pack.getSeqnum());
+    if (ack.isAccept()) return true;
+    return false;
+}
+
+
 
 /* 
 Aguarda até receber um pacote 
@@ -139,7 +152,7 @@ Package ProtocolHandler::receiveLoop(UDPSocket &socket, uint32_t ackEsperado){
             if(p.getAcknum() == ackEsperado) return p;
         } 
     }
-
+    printf("retornando vazio\n");
     return {};
 }
 
@@ -153,7 +166,7 @@ bool ProtocolHandler::Disconnect(UDPSocket &socket){
     
     socket.send(disconnectPc.serialize()); 
 
-    Package ack = receiveLoop(socket, disconnectPc.getSeqnum());
+    Package ack = receiveLoop(socket, 0);
     conn.handleIncoming(ack); 
 
     return !conn.isEstablished();

@@ -5,7 +5,7 @@ Connection::State Connection::getState() const {
 }
 
 bool Connection::isEstablished() const {
-    return (this->state == State::ESTABLISHED);
+    return (this->state != State::DISCONNECTED);
 }
 
 void Connection::handleIncoming(const Package& package) {
@@ -40,16 +40,21 @@ void Connection::handleIncoming(const Package& package) {
     
     case State::DISCONNECT_SENT:
         // espero ack
-        if (!package.isAckOnly()) return;
-
-        if (package.getAcknum() == this->seqnum) {
-            this->seqnum++;
-            this->acknum = package.getSeqnum();
-
-            this->sttl = package.getSttl();
-            
-            this->state = State::DISCONNECTED;
+        if (!package.isAckOnly()) {
+            printf("OI");
+            package.printAll();
+            return;
         }
+
+        
+
+        this->seqnum++;
+        this->acknum = package.getSeqnum();
+
+        this->sttl = package.getSttl();
+        
+        this->state = State::DISCONNECTED;
+        printf("ESTADO DESCONECTADO");
 
         break;
     
@@ -114,8 +119,9 @@ void Connection::handleOutput(Package& package, int opt) {
         package.setAcknum(this->acknum);
         package.setSeqnum(this->seqnum);
         package.setSid(this->sid);
+        package.setWindow(0);
 
-        this->state = State::CONNECT_SENT;
+        this->state = State::DISCONNECT_SENT;
         break;
     
     case 4:
