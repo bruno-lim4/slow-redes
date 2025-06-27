@@ -142,3 +142,20 @@ Package ProtocolHandler::receiveLoop(UDPSocket &socket, uint32_t ackEsperado){
 
     return {};
 }
+
+bool ProtocolHandler::Disconnect(UDPSocket &socket){
+
+    Package disconnectPc;
+    conn.handleOutput(disconnectPc, 3); 
+
+    cout << "estou enviando o seguinte\n" ; 
+    disconnectPc.printAll() ; 
+    
+    socket.send(disconnectPc.serialize()); 
+
+    Package ack = receiveLoop(socket, disconnectPc.getSeqnum());
+    conn.handleIncoming(ack); 
+
+    return !conn.isEstablished();
+    
+}

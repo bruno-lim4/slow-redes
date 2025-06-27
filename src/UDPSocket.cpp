@@ -76,6 +76,8 @@ de erro (atualizando lastErrno_ nesse caso)
 
 ssize_t UDPSocket::send(const vector<char> &segment){
 
+    cout << "enviando\n" ; 
+    
     //verifica se connectTo foi chamado com sucesso 
     if(!isConnected_){
         lastErrno_ = ENOTCONN ; 

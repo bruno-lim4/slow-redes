@@ -89,7 +89,7 @@ void Connection::handleOutput(Package& package, int opt) {
         package.setAcknum(this->acknum);
         package.setSeqnum(this->seqnum);
         package.setSid(this->sid);
-
+        package.setSttl(this->sttl);
         this->state = State::ESTABLISHED;
         break;
     
@@ -98,6 +98,7 @@ void Connection::handleOutput(Package& package, int opt) {
         if (!(this->state == State::CLOSED)) break;
         package.setFlagC(true);
         package.setSeqnum(0);
+        package.setSttl(this->sttl);
         package.setAcknum(0);
 
         this->state = State::CONNECT_SENT;
@@ -108,6 +109,7 @@ void Connection::handleOutput(Package& package, int opt) {
         if (!(this->state == State::ESTABLISHED)) break;
         package.setFlagACK(true);
         package.setFlagC(true);
+        package.setSttl(this->sttl);
         package.setFlagR(true);
         package.setAcknum(this->acknum);
         package.setSeqnum(this->seqnum);
@@ -121,6 +123,7 @@ void Connection::handleOutput(Package& package, int opt) {
         if (!(this->state == State::DISCONNECTED)) break;
         package.setFlagACK(true);
         package.setFlagR(true);
+        package.setSttl(this->sttl);
         package.setAcknum(this->acknum);
         package.setSeqnum(this->seqnum);
         package.setSid(this->sid);

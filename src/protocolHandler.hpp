@@ -17,6 +17,7 @@
     public:
         bool handshake(UDPSocket &socket, const string &ip, uint16_t port);
         bool sendData(UDPSocket &socket, const vector<char> &data);
+        bool Disconnect(UDPSocket &socket);
     };
     
 #endif
