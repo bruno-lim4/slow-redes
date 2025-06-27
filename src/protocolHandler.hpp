@@ -15,6 +15,8 @@
         uint8_t fid = 0;
         Package receiveLoop(UDPSocket &socket, uint32_t Ackesperado);
     public:
+        bool verifyConenction();
+
         bool handshake(UDPSocket &socket, const string &ip, uint16_t port);
         bool sendData(UDPSocket &socket, const vector<char> &data);
         bool Disconnect(UDPSocket &socket);

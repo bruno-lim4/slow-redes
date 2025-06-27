@@ -5,6 +5,10 @@ using namespace std;
 
 #define MAX_PACK_DATA 1440
 
+bool ProtocolHandler::verifyConenction() {
+    return this->conn.isEstablished();
+}
+
 bool ProtocolHandler::handshake(UDPSocket &socket, const string &ip, uint16_t port){
     
     //estabelecendo a conexão 

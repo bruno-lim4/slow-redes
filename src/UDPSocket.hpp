@@ -28,6 +28,10 @@ public:
     //Retorna true em sucesso, false em caso de erro
     bool connectTo(const string& ip, uint16_t port);
 
+    // Desconecta o socket em nível de kernel e libera o seu
+    // descritor
+    bool disconnect();
+
     //Envia um serializado via UDP (sendto)
     //Retorna número de bytes enviados, ou –1 em caso de erro
     ssize_t send(const vector<char>& segment);

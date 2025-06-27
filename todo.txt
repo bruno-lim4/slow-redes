@@ -1,3 +1,0 @@
---> Testar todo o Package
---> Implementar struct ou classe para o UUID
---> Integrar UUID no Package

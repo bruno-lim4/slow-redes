@@ -67,6 +67,14 @@ bool UDPSocket::connectTo(const string& ip, uint16_t port) {
 
 }
 
+// Desconecta o socket
+bool UDPSocket::disconnect() {
+    shutdown(this->sockfd_, SHUT_RDWR);
+    close(this->sockfd_);
+
+    return true;
+}
+
 /*
 verifica se o socket foi previamente conectado 
 envia todos os dados para o destino (usando sendto) 
