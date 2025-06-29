@@ -82,10 +82,7 @@ retorna o número de bytes enviados ou -1 em caso
 de erro (atualizando lastErrno_ nesse caso) 
 */
 
-ssize_t UDPSocket::send(const vector<char> &segment){
-
-    cout << "enviando\n" ; 
-    
+ssize_t UDPSocket::send(const vector<char> &segment){    
     //verifica se connectTo foi chamado com sucesso 
     if(!isConnected_){
         lastErrno_ = ENOTCONN ; 

@@ -41,8 +41,6 @@ void Connection::handleIncoming(const Package& package) {
     case State::DISCONNECT_SENT:
         // espero ack
         if (!package.isAckOnly()) {
-            printf("OI");
-            package.printAll();
             return;
         }
 
@@ -54,7 +52,6 @@ void Connection::handleIncoming(const Package& package) {
         this->sttl = package.getSttl();
         
         this->state = State::DISCONNECTED;
-        printf("ESTADO DESCONECTADO");
 
         break;
     
@@ -67,13 +64,13 @@ void Connection::handleIncoming(const Package& package) {
                 this->acknum = package.getSeqnum();
 
                 this->sttl = package.getSttl();
+                this->sid = package.getSid();
 
                 this->state = State::ESTABLISHED;
             }
             
         } else if (!package.isAccept()) {
             // foi rejeitado
-            cout << "conexão rejeitada\n";
             this->state = State::DISCONNECTED;
         }
 

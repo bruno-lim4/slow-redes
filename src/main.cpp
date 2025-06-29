@@ -69,6 +69,8 @@ void interface() {
                     cout << "=== MENSAGEM ENVIADA ===" << endl << endl; 
                 else 
                     cout << "!== ERRO NO ENVIO DA MENSAGEM ==!" << endl << endl; 
+
+                message.clear();
             break;
 
             case 3:         // Desconectar
