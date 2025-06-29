@@ -63,7 +63,7 @@ Integra, configura e controla o fluxo da comunicação e os segentos mandados, i
 
 - sendDisconect: Desabilita a conexão préviamente estabelecida com o central. Para isso envia o pacote "disconect" e verifica no ack se a conexão realmente não está mais ativa.
 
--sendRevive: Dada uma conexão que já havia existido, mas foi desabilidata com "sendDisconnect", reastabelece implementando o processo do 0-way connect.
+- sendRevive: Dada uma conexão que já havia existido, mas foi desabilidata com "sendDisconnect", reastabelece implementando o processo do 0-way connect.
 
 - recieveLoop: Usado internamente para esperar os acks e as respostas do servidor durante as conexões (3-way ou 0-way).
 
@@ -131,4 +131,5 @@ Após a compilação, execute o programa com:
 ```
 
 No incício da execução, uma interface apareçerá para mostrar cada comando.
+
 Vale ressaltar que o envio de mensagens (comando 2) só ocorre após quebrar a linha duas vezes.
