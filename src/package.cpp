@@ -1,8 +1,9 @@
 #include "package.hpp"
 
-// Internal constants for package's size control
+// constante interna para controle do tamanho máximo do pacote 
 #define MAX_PACK_DATA 1440
 
+//transforma pra imprimir os bits que compõe o byte
 void printBits(char byte) {
     for (int i = 7; i >= 0; --i) {
         std::cout << ((byte >> i) & 1);
@@ -10,6 +11,7 @@ void printBits(char byte) {
     std::cout << std::endl;
 }
 
+//imprimir cada byte do buffer - útil para ler os bits do pacote 
 void printBufferBits(const std::vector<char>& buffer) {
     for (unsigned char c : buffer) {
         printBits(c);
@@ -23,8 +25,7 @@ void printBufferBits(const std::vector<char>& buffer) {
 
 // Função auxiliar que serializa campos genéricos em um buffer
 // Os bites são escritos em little endian
-template<typename T>
-void serializeField(vector<char> &buffer, T value) {
+template<typename T> void serializeField(vector<char> &buffer, T value) {
     using Unsigned = std::make_unsigned_t<T>;
     Unsigned v = static_cast<Unsigned>(value);
 
@@ -35,8 +36,8 @@ void serializeField(vector<char> &buffer, T value) {
 
 
 
-// Transforma os dados do objeto na sequnecia de bits a ser trans
-// mitida os enviando em um vector de chars;
+// Transforma os dados do objeto na sequnecia de bits a ser transmitida 
+// os enviando em um vector de chars;
 vector<char> Package::serialize() const {
     vector<char> buffer;
 
@@ -49,9 +50,9 @@ vector<char> Package::serialize() const {
 
 
     uint32_t combinedField = \
-        // Write the STTL in the top 27 bits
+        //escreve STTL nos 27 primeiros bits
         (this->sttl << 5)
-        // Write the flags in the bottom 5 bits
+        //escreve as flags no 5 bits finais
         | (static_cast<uint32_t>(this->flagC) << 4)
         | (static_cast<uint32_t>(this->flagR) << 3)
         | (static_cast<uint32_t>(this->flagACK) << 2)
@@ -72,7 +73,6 @@ vector<char> Package::serialize() const {
     return buffer;
 }
 
-// Não sei se isso vai funcionar :(
 template<typename T>
 T deserializeField(const vector<char> &buffer, size_t &offset) {
     using Unsigned = std::make_unsigned_t<T>;
@@ -105,10 +105,9 @@ Package Package::deserialize(const vector<char>& buffer) {
     // Deserializando sttl e flags
     uint32_t combinedField = deserializeField<uint32_t>(buffer, offset);
 
-    // Get top 27 bits for the STTL
+    //pega 27 primeiros bits do STTL
     pack.sttl = combinedField >> 5;
-
-
+    
     pack.flagC = combinedField & (1 << 4);
     pack.flagR = combinedField & (1 << 3);
     pack.flagACK = combinedField & (1 << 2);
@@ -141,6 +140,7 @@ bool Package::isAckOnly() const {
 
 // Pacotes connect devem ter seqnum, acknum e sttl zerados;
 bool Package::isConnect() const {
+    
     // Verificando sttl e flags
     if(!(this->sttl == 0) || !(this->flagC))
         return false;
