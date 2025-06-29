@@ -133,3 +133,39 @@ Após a compilação, execute o programa com:
 No incício da execução, uma interface apareçerá para mostrar cada comando.
 
 Vale ressaltar que o envio de mensagens (comando 2) só ocorre após quebrar a linha duas vezes.
+
+## Exemplos de uso
+
+* Conectar e enviar uma mensagem:
+
+```bash
+    1
+    2
+    Uma nova mensagem sendo enviada
+
+    
+```
+
+* Conectando, desconectando e enviando um revive
+
+```bash
+    1
+    3
+    4
+```
+
+* Enviando várias mensagens e encerrando o programa
+
+  ```bash
+    1
+    2
+    Primeira mensagem
+
+    2
+    Segunda mensagem
+
+    3
+    Mais uma mensagem
+
+    5
+  ```
