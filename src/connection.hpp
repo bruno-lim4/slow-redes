@@ -11,8 +11,12 @@ public:
 
     // devolve o estado atual
     State getState() const;
+
     // retorna true se a conexão foi estabelecida
     bool isEstablished() const;
+
+    // Retorna se a conexão foi desabilitada
+    bool isClosed() const;
 
     // Atualiza o estado a partir de um pacote recebido
     void handleIncoming(const Package& package);

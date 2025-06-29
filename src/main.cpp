@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
+#include <vector>
 #include "protocolHandler.hpp"
+#include "connection.hpp"
 #include "UDPSocket.hpp"
 
 #define SERVER_IP "142.93.184.175"
@@ -35,11 +37,17 @@ void interface() {
                 cout << "1 - Conectar com o servidor" << endl;
                 cout << "2 - Enviar uma mensagem" << endl;
                 cout << "3 - Desconectar" << endl;
-                cout << "4 - Reviver conexão" << endl << endl;
+                cout << "4 - Reviver conexão" << endl;
                 cout << "5 - Encerrar programa" << endl << endl;
             break;
         
             case 1:        // Conectar
+                // Verificando se a conexão já não existe
+                if(!pc.verifyConnectionClosed()) {
+                    cout << "*== Sua conexão está habilitada ==*" << endl << endl;
+                    break;
+                }
+
                 checkCom = pc.handshake(socket, SERVER_IP, SERVER_PORT);
                 if(checkCom)
                     cout << "=== CONECTADO ===" << endl << endl;
@@ -49,7 +57,7 @@ void interface() {
 
             case 2:        // Enviar mensagem
                 if(!pc.verifyConenction()) {
-                    cout << "*== É preciso ter conexão ativa para essa ação ==*";
+                    cout << "*== É preciso ter conexão ativa para essa ação ==*" << endl << endl;
                     break;
                 }
 
@@ -75,7 +83,7 @@ void interface() {
 
             case 3:         // Desconectar
                 if(!pc.verifyConenction()) {
-                    cout << "*== É preciso ter conexão ativa para essa ação ==*";
+                    cout << "*== É preciso ter conexão ativa para essa ação ==*" << endl << endl;
                     break;
                 }
 
@@ -86,6 +94,11 @@ void interface() {
                     cout << "!== ERRO AO DESCONECTAR ==!" << endl << endl;
             break;
             case 4:        // Revive
+                if(pc.verifyConenction()) {
+                    cout << "*== Sua conexão já está ativa ==*" << endl << endl;
+                    break;
+                }
+
                 checkCom = pc.sendRevive(socket);
                 if(checkCom)
                     cout << "=== CONEXÃO RECUPERADA ===" << endl << endl;

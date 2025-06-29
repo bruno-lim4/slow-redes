@@ -5,7 +5,11 @@ Connection::State Connection::getState() const {
 }
 
 bool Connection::isEstablished() const {
-    return (this->state != State::DISCONNECTED);
+    return (this->state != State::DISCONNECTED && this->state != State::CLOSED);
+}
+
+bool Connection::isClosed() const {
+    return (this->state == State::CLOSED);
 }
 
 void Connection::handleIncoming(const Package& package) {

@@ -10,6 +10,11 @@ bool ProtocolHandler::verifyConenction() {
     return this->conn.isEstablished();
 }
 
+// Obtém o connection interno da comunicação
+bool ProtocolHandler::verifyConnectionClosed() {
+    return this->conn.isClosed();
+}
+
 //faz o 3way handshake 
 bool ProtocolHandler::handshake(UDPSocket &socket, const string &ip, uint16_t port){
     
@@ -17,14 +22,12 @@ bool ProtocolHandler::handshake(UDPSocket &socket, const string &ip, uint16_t po
     if(!socket.connectTo(ip, port)){
         //não foi bem sucedida 
         cout << socket.getLastError() << "\n" ; 
-        return 0 ; 
+        return false; 
     }
 
     // cria package de connect - e informa ao connection
     Package connectPc;
     conn.handleOutput(connectPc, 2);
-
-    connectPc.printAll();
 
     // envia connect
     auto envio = connectPc.serialize();
@@ -37,8 +40,6 @@ bool ProtocolHandler::handshake(UDPSocket &socket, const string &ip, uint16_t po
     // connection altera esse pacote pra simbolizar um envio com ACK
     conn.handleOutput(resposta, 1);
     
-    //resposta.printAll();
-
     // envio ACK sem dados
     auto envio2 = resposta.serialize();
     socket.send(envio2) ; 
@@ -58,7 +59,6 @@ bool ProtocolHandler::sendData(UDPSocket &socket, const vector<char> &data){
     int total_left = data.size();
     
     //ver quantos caracteres quero gravar
-    //cout << "tamanho " << total_left << "\n" ; 
     // byte atual
     int at = 0;
 
@@ -106,12 +106,7 @@ bool ProtocolHandler::sendData(UDPSocket &socket, const vector<char> &data){
         conn.handleOutput(p, 1);
     
         //arrumar o seqnum 
-        //p.printAll();
-        //printf("tam: %ld\n", p.serialize().size());
-
         socket.send(p.serialize());
-        printf("ENVIEI DATA:\n");
-        p.printAll();
         Package ack = receiveLoop(socket, p.getSeqnum());
         conn.handleIncoming(ack);
     }
@@ -132,8 +127,7 @@ bool ProtocolHandler::sendRevive(UDPSocket &socket) {
     conn.handleIncoming(ack);
 
     //retorna se conseguiu reestabelecer a conexão 
-    if (ack.isAccept()) return true;
-    return false;
+    return conn.isEstablished();
 }
 
 
@@ -149,16 +143,10 @@ Package ProtocolHandler::receiveLoop(UDPSocket &socket, uint32_t ackEsperado){
             Package p = Package::deserialize(resp.value());
 
             //recebi o pacote que esperava
-            printf("RECEBO PACOTE\n");
-            if(p.getAcknum() == ackEsperado) {
-                printf("PACOTE É VÁLIDO\n");
-                p.printAll();
-                return p;
-            }
-                
+            if(p.getAcknum() == ackEsperado)
+                return p;     
         } 
     }
-    printf("RECEBI NADA\n");
     return {};
 }
 
