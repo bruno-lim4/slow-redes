@@ -76,7 +76,7 @@ void interface() {
                     break;
                 }
 
-                checkCom = pc.Disconnect(socket);
+                checkCom = pc.sendDisconnect(socket);
                 if(checkCom)
                     cout << "=== DESCONECTADO ===" << endl << endl;
                 else
@@ -90,9 +90,9 @@ void interface() {
                     cout << "!== ERRO AO RECUPERAR CONEXÃO ==!" << endl << endl;
             break;
 
-            case 5:
+            case 5:         // Encerra a interface
                 if(pc.verifyConenction()) 
-                    pc.Disconnect(socket);
+                    pc.sendDisconnect(socket);
                 socket.disconnect();
 
                 cout << "=== PROGRAMA ENCERRADO ===" << endl << endl;

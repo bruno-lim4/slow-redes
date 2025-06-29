@@ -10,11 +10,11 @@
 
 ## Arquitetura proposta:
 
-Todos os atributos são privados com getters e setters quando necessário
+Arquitetura em camadas, onde todos os atributos são privados com getters e setters quando necessário.
 
 ### **Package:**
 
-Deve definir, instanciar e fornecer os pacotes do protocolo SLOW.
+Define, instanciar e fornece os pacotes do protocolo SLOW.
 
 #### Atributos:
 
@@ -34,65 +34,101 @@ Deve definir, instanciar e fornecer os pacotes do protocolo SLOW.
 | fo | Ordem dos pacotes de um mesmo fid | 8 bits
 | data | dados da mensage | até 1440 bytes
 
-#### Métodos:
+#### Métodos principais:
 
-- Serialize
+- Serialize: Separa os bytes da classe e os armazena em um vector de chars.
 
-- Deserialize
+- Deserialize: Dado um vector de chars com os dados serializados do pacote, resonstroi o objeto original.
 
-- Methodos para checar se cada flag está ativa
+- Methodos para checar se cada flag está ativa.
 
-- toString para debug
+- toString para debug.
 
 ### **protocolHandler:**
 
-Integrar, configura e controlar o fluxo da comunicação e os segentos mandados.
-
-ProtocolHander fica a cargo do pacote, tirando campos como seqnum e acknum, e flags que dependem do estado da comunicação no momento, ficando esses a cargo de Connection
+Integra, configura e controla o fluxo da comunicação e os segentos mandados, implementando métodos tratar cada tipo de fluxo de mensagens do protocólo.
 
 #### Atributos:
 
-| Nome | Função | Quantidade de bits |
-|------|--------|--------------------|
-|UDPSocket|||
-|Connection|||
+| Nome | Função | Tipo |
+|------|--------|------|
+|fid|Armazena o fid local de uma comunicação|uint8_t|
+|Connection|Objeto que gerencia localmente os estados da comunicação|Connection|
 
-#### Métodos:
+#### Métodos principais:
 
-- initiateHandshake(UDPSocket): Recebe os parametros para criar a conexão, faz o 3 way connect
+- handshake: Recebe os parametros para criar a conexão e então faz o 3-way connect.
 
-    * Vai se comunicar com o Connection para obter, estados acks e seqs
-    * Instancia os segmentos a partir disso
-    * Vai enviar os pacotes do handshake pelo UDPSocket
+- SendData: Envia dados do peripheral para o central, desde que haja uma conexão ativa. Além disso, *fragmenta* o pacote sempre que necessário.
 
-- SendData(Dados): Recebe os dados a serem enviados pelo usuário, verifica se existe uma conexão e se está ativa, separa os dados em fragmentos (quando necessário) envia e espera o ack
+- sendDisconect: Desabilita a conexão préviamente estabelecida com o central. Para isso envia o pacote "disconect" e verifica no ack se a conexão realmente não está mais ativa.
 
-    * Usa receiveLoop() para esperar os acks
-    * Consulta o connection para criar os pacotes / segmentos
-    * Altera / instancia objetos Packages
+-sendRevive: Dada uma conexão que já havia existido, mas foi desabilidata com "sendDisconnect", reastabelece implementando o processo do 0-way connect.
 
-- recieveLoop(): Usado internamente para esperar os acks e as respostas do servidor durante as conexões (3 way ou 0 way)
+- recieveLoop: Usado internamente para esperar os acks e as respostas do servidor durante as conexões (3-way ou 0-way).
 
 ### **Connection:**
 
-Máquina de estados, para gerenciar acks, seqs atuais e o estado da comunicação (ou seja, qual tipo de segmento deve ser enviado)
+Máquina de estados, que garante que os campos sid e sttl sejam preenchidos, gerencia os núemros de ack e seq atuais, bem como o estado da comunicação (estabelecida, disconectada, fechada, ect...) e implementa funções para setar o header do pacote de cada estado, bem como transitar entre eles conforme a comunicação avança.
 
 #### Atributos:
 
-enum para os states (CONNECT_SENT, CLOSED, ESTABLISHED, DISCONNECTED, REVIVE_SENT)
+|nome|função|tipo|
+|state|Armazena o estado atual da comunicação|State|
+|acknum|Armazena o último acknum enviado pelo central|uint32_t|
+|seqnum|Armazena o último seqnum enviado|uint32_t|
+|sttl|armazena o sttl estabelecido pelo central|uint32_t|
+|sid|armazena o sid estabelecido pelo central|array<char,16>|
 
-sid e sttl variáveis internas comuns a conexão
+É importante citar que utilizamos um enum para os states (CONNECT_SENT, CLOSED, ESTABLISHED, DISCONNECT_SENT, DISCONNECTED, REVIVE_SENT).
 
-#### Métodos:
+#### Métodos principais:
 
-- handleIncoming(): Recebe um pacote da protocolHandler (após o receiveLoop), verificando suas flags e valores para atualizar a máquina de estado e variáveis internas
+- handleIncoming(): Recebe um pacote do protocolHandler (após o receiveLoop), verificando suas flags e valores para atualizar a máquina de estado e variáveis internas.
 
-- handleOutput(): Recebe uma referencia para package para ser alterado de acordo com o estado da conexão, setando falgs e sid.
+- handleOutput(): Monta um pacote de acordo com os parametros atuais da conexão estabelecida (sid, sttl, acknum e seqnum) e os requisitos do tipo de pacote que o estado atual pede. 
 
-    * ProtocolHandler chama essa função antes de enviar os pacotes SLOW
+- GetState: retorna o estado atual da conexão.
 
-- AdvanceAck() e advanceSeq(): Funções internas para controlar a seqnum e acknum
-
-- Getters e setters para o que for preciso
+- isEstablished: Verifica se há uma conexão ativa com o central.
 
 
+### **UDPSocket:**
+
+Base da arquitetura de camadas, sendo a classe que encapsula as primitivas do socket UDP para cria-lo, destruí-lo, conectá-lo e enviar mensagens por ele de forma simplificada por quem a utiliza.
+
+#### Atributos:
+
+|nome|função|tipo|
+|sockfd_|descritor de socket UDP|int|
+|peerAddr_|Endereço do peer|sockaddr_in|
+|isConnected_|Informa se o socket está conectado|bool|
+|lastErrno_|Armazena o erro dos serv|int|
+
+#### Métodos principais:
+
+- connectTo: Conecta o udp socket ao central.
+
+- disconnect: Desconecta e fecha o socket após o fim da comunicação.
+
+- send: Envia dados serializados pelo socket, uma vez que esta está conectado.
+
+- receive: Seta um timeout e espera o recebimento de um segmento após um envio.
+
+## Como rodar?
+
+Entre na pasta do projeto e compile o código com:
+
+```bash
+    cd src/
+    make
+```
+
+Após a compilação, execute o programa com:
+
+```bash
+    ./peripheral
+```
+
+No incício da execução, uma interface apareçerá para mostrar cada comando.
+Vale ressaltar que o envio de mensagens (comando 2) só ocorre após quebrar a linha duas vezes.

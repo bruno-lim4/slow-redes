@@ -122,15 +122,12 @@ bool ProtocolHandler::sendData(UDPSocket &socket, const vector<char> &data){
 
 //reviver uma conexão encerrada
 bool ProtocolHandler::sendRevive(UDPSocket &socket) {
-    
+    // Gerando um pacote revive
     Package pack;
-    conn.handleOutput(pack, 4); //altera dados do pacote pra mandar o revive
+    conn.handleOutput(pack, 4); 
     
-    //printf("Dou Revive:\n");
-    //pack.printAll();
-    socket.send(pack.serialize()); //envia o pacote 
-
-    //recebe o ack
+    //envia o pacote 
+    socket.send(pack.serialize()); 
     Package ack = receiveLoop(socket, pack.getSeqnum());
 
     //retorna se conseguiu reestabelecer a conexão 
@@ -149,29 +146,28 @@ Package ProtocolHandler::receiveLoop(UDPSocket &socket, uint32_t ackEsperado){
         auto resp = socket.receive(1000) ;
         if(resp.has_value()){
             Package p = Package::deserialize(resp.value());
-            //p.printAll();
+
             //recebi o pacote que esperava
-            if(p.getAcknum() == ackEsperado) return p;
+            if(p.getAcknum() == ackEsperado)
+                return p;
         } 
     }
-    printf("retornando vazio\n");
     return {};
 }
 
 //efetuar o disconnect: 
 // envio um pacote pra desconectar e recebo ack dele 
-bool ProtocolHandler::Disconnect(UDPSocket &socket){
-
+bool ProtocolHandler::sendDisconnect(UDPSocket &socket){
     Package disconnectPc;
     conn.handleOutput(disconnectPc, 3); 
-    //disconnectPc.printAll() ; 
     
-    socket.send(disconnectPc.serialize()); //enviando o pacote pra desconectar 
+    //enviando o pacote pra desconectar 
+    socket.send(disconnectPc.serialize());
 
-    Package ack = receiveLoop(socket, 0); //recebi um pacote ack pra confirmar o disconnect
+    //recebi um pacote ack pra confirmar o disconnect
+    Package ack = receiveLoop(socket, 0);
     conn.handleIncoming(ack); 
 
     //verifico se agora a conexão está encerrada
     return !conn.isEstablished();
-    
 }
