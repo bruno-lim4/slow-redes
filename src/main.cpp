@@ -36,6 +36,7 @@ void interface() {
                 cout << "2 - Enviar uma mensagem" << endl;
                 cout << "3 - Desconectar" << endl;
                 cout << "4 - Reviver conexão" << endl << endl;
+                cout << "5 - Encerrar programa" << endl << endl;
             break;
         
             case 1:        // Conectar
